@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "0681a9e6-38d0-44d2-b193-c24722737d71",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-20261010-160000/candidate.json",
+  "output": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-20261010-160000/voxstream.html",
+  "specification": {
+    "sha256": "bbf952795f6ceab219aa33f0cab81b5ae4b7701486211fc5aa67226f548526c7",
+    "bytes": 3917
+  },
+  "artifact": {
+    "sha256": "e37da4ebd4750fa4e9c4c0e57a0c5eef9bb3c12d304f5a985f19fc39508fec12",
+    "bytes": 765285
+  }
+}

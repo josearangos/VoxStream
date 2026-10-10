@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "VoxStream: streaming Spanish TTS over WebSocket",
+    "output": ".archify/architecture-voxstream-20261010-160000/voxstream.html",
+    "quality_profile": "showcase",
+    "locale": "en"
+  },
+  "components": [
+    { "id": "client", "type": "external", "label": "Client", "sublabel": "LLM app / examples/ws_client.py", "pos": [40, 240], "size": [150, 64] },
+    { "id": "server", "type": "backend", "label": "WebSocket server", "sublabel": "/v1/stream · /healthz · /readyz", "pos": [290, 240], "size": [190, 64], "tag": "reader + worker" },
+    { "id": "admission", "type": "security", "label": "Admission control", "sublabel": "1 active request", "pos": [315, 80], "size": [140, 64] },
+    { "id": "segmenter", "type": "backend", "label": "Segmenter", "sublabel": "Spanish sentences", "pos": [600, 240], "size": [140, 64] },
+    { "id": "synth", "type": "backend", "label": "Synthesizer", "sublabel": "frames of 100 ms", "pos": [900, 240], "size": [140, 64] },
+    { "id": "sender", "type": "backend", "label": "Sender", "sublabel": "PCM s16le 24 kHz", "pos": [900, 400], "size": [140, 64] },
+    { "id": "engine", "type": "backend", "label": "TTSEngine interface", "sublabel": "engine chosen by config", "pos": [1180, 240], "size": [170, 64] },
+    { "id": "mock", "type": "backend", "label": "Mock engine", "sublabel": "tests", "pos": [1190, 400], "size": [150, 64] },
+    { "id": "kokoro", "type": "backend", "label": "Kokoro-ONNX adapter", "sublabel": "CPU, segmented", "pos": [1490, 240], "size": [170, 64] },
+    { "id": "gate", "type": "security", "label": "Voice gate", "sublabel": "voice-verification.json", "pos": [1500, 80], "size": [150, 64] },
+    { "id": "models", "type": "database", "label": "models/", "sublabel": "kokoro-v1.0.onnx", "pos": [1500, 400], "size": [150, 64] }
+  ],
+  "connections": [
+    { "id": "client-text", "from": "client", "to": "server", "label": "text pieces", "variant": "emphasis" },
+    { "id": "server-admit", "from": "server", "to": "admission", "label": "acquire slot", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "id": "server-segmenter", "from": "server", "to": "segmenter", "label": "text" },
+    { "id": "segmenter-synth", "from": "segmenter", "to": "synth", "label": "segment queue (4)" },
+    { "id": "synth-sender", "from": "synth", "to": "sender", "label": "audio queue (8 frames)", "fromSide": "bottom", "toSide": "top" },
+    { "id": "sender-client", "from": "sender", "to": "client", "label": "binary audio frames", "variant": "emphasis", "fromSide": "left", "toSide": "bottom" },
+    { "id": "synth-engine", "from": "synth", "to": "engine", "label": "synthesize()" },
+    { "id": "engine-kokoro", "from": "engine", "to": "kokoro", "label": "default" },
+    { "id": "engine-mock", "from": "engine", "to": "mock", "label": "VOXSTREAM_ENGINE=mock", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "gate-kokoro", "from": "gate", "to": "kokoro", "label": "verified voices", "variant": "security", "fromSide": "bottom", "toSide": "top" },
+    { "id": "kokoro-models", "from": "kokoro", "to": "models", "label": "loads ONNX", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Streaming pipeline", "items": ["Text is split into sentences while it arrives", "Bounded queues give backpressure to the client", "Cancel or disconnect stops synthesis and frees the slot"] },
+    { "dot": "emerald", "title": "Operations", "items": ["Config: VOXSTREAM_* environment variables", "Logs: JSON with request id, never text or audio", "/readyz reports the voice gate and execution provider"] },
+    { "dot": "rose", "title": "Spanish quality gate", "items": ["voxstream verify-voices transcribes audio with Whisper", "Only voices that pass for the installed model are served"] }
+  ]
+}
