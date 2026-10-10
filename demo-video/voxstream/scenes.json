@@ -1,0 +1,17 @@
+{
+  "url": "http://127.0.0.1:7860/",
+  "brand": "#f97316",
+  "camera": {"click_zoom": 1.0, "type_zoom": 1.0},
+  "scenes": [
+    {"id": "hook", "voice": "Reading aloud and losing your place? VoxStream Teleprompter speaks your text and follows along.", "min": 6,
+     "actions": [{"goto": "/"}, {"wait_for": {"text": "Start"}}, {"pause": 1}]},
+    {"id": "type", "voice": "Type or paste your Spanish text into the box.", "min": 9,
+     "actions": [{"type": "Buenos días. Este es un texto de ejemplo para probar la voz y el resaltado de palabras.", "into": "textarea >> nth=0", "clear": true}] },
+    {"id": "start", "voice": "Press Start. The status changes to Playing and the audio begins.", "min": 6,
+     "actions": [{"click": {"role": "button", "name": "Start"}, "at": "Start", "zoom": false}, {"pause": 2.5}]},
+    {"id": "follow", "voice": "Each word is highlighted as it is spoken, so you can follow along like a teleprompter.", "min": 8,
+     "actions": [{"scroll_by": 300}, {"pause": 5}]},
+    {"id": "end", "voice": "VoxStream Teleprompter. Type Spanish text, press Start, and follow along.",
+     "card": {"title": "VoxStream Teleprompter", "subtitle": "Type Spanish text, press Start, and follow along."}}
+  ]
+}

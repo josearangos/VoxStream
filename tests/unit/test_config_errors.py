@@ -37,3 +37,31 @@ def test_error_message_has_no_path_or_traceback(code):
     err = VoxStreamError(code, "Something actionable happened.")
     assert err.category == CODE_CATEGORY[code]
     assert not re.search(r"(/Users/|/home/|Traceback|\.py\b)", err.message)
+
+
+def test_transport_defaults():
+    s = Settings(_env_file=None)
+    assert s.enable_websocket is True and s.enable_grpc is True
+    assert s.grpc_port == 50051
+    s.validate_transports()
+
+
+def test_both_transports_disabled_is_an_actionable_error():
+    s = Settings(_env_file=None, enable_websocket=False, enable_grpc=False)
+    with pytest.raises(ValueError, match="At least one of the two transports") as exc:
+        s.validate_transports()
+    assert "VOXSTREAM_ENABLE_WEBSOCKET" in str(exc.value)
+    assert "VOXSTREAM_ENABLE_GRPC" in str(exc.value)
+
+
+def test_transport_env_override(monkeypatch):
+    monkeypatch.setenv("VOXSTREAM_ENABLE_GRPC", "false")
+    monkeypatch.setenv("VOXSTREAM_GRPC_PORT", "6000")
+    s = Settings(_env_file=None)
+    assert s.enable_grpc is False and s.grpc_port == 6000
+
+
+def test_grpc_port_must_differ_from_port_unless_ephemeral():
+    with pytest.raises(ValueError, match="VOXSTREAM_GRPC_PORT"):
+        Settings(_env_file=None, port=9000, grpc_port=9000).validate_transports()
+    Settings(_env_file=None, port=0, grpc_port=0).validate_transports()

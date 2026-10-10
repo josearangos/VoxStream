@@ -23,8 +23,8 @@ async def test_crossing_limit_fails_but_prior_audio_valid(serve):
         assert err["category"] == "validation" and err["retryable"] is False
         assert err["request_id"] == c.request_id
         assert [f.sequence for f in frames] == list(range(len(frames)))
-        # further text is rejected
-        await c.text("más")
-        again = await c.recv_json()
-        assert again["code"] == "NO_ACTIVE_REQUEST"
+        if server.transport == "websocket":  # a gRPC call is over after its terminal event
+            await c.text("más")
+            again = await c.recv_json()
+            assert again["code"] == "NO_ACTIVE_REQUEST"
         assert server.admission.active == 0

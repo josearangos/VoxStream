@@ -1,0 +1,87 @@
+{
+ "url": "http://127.0.0.1:7860/",
+ "title": "VoxStream Teleprompter",
+ "description": "Click to try out the app!",
+ "headings": [
+  "H1: VoxStream Teleprompter"
+ ],
+ "copy": "VoxStream Teleprompter\nType Spanish text, press Start, and follow along.\nText\nStart\nStop\nStatus\nAudio\nYour browser blocked audio. Click the player's play button. (shown only if the browser stops playback)\nUse via API\n·\nBuilt with Gradio\n·\nSettings",
+ "elements": [
+  {
+   "tag": "textarea",
+   "type": "textarea",
+   "text": "Hola, bienvenido a VoxStream. Esta es una demostración de síntesis de ",
+   "selector": null,
+   "y": 143,
+   "in_first_screen": true
+  },
+  {
+   "tag": "button",
+   "type": "submit",
+   "text": "Start",
+   "selector": {
+    "text": "Start"
+   },
+   "y": 308,
+   "in_first_screen": true
+  },
+  {
+   "tag": "button",
+   "type": "submit",
+   "text": "Stop",
+   "selector": {
+    "text": "Stop"
+   },
+   "y": 308,
+   "in_first_screen": true
+  },
+  {
+   "tag": "textarea",
+   "type": "textarea",
+   "text": "Ready",
+   "selector": {
+    "text": "Ready"
+   },
+   "y": 402,
+   "in_first_screen": true
+  },
+  {
+   "tag": "button",
+   "type": "submit",
+   "text": "Use via API",
+   "selector": {
+    "text": "Use via API"
+   },
+   "y": 683,
+   "in_first_screen": true
+  },
+  {
+   "tag": "a",
+   "text": "Built with Gradio",
+   "selector": {
+    "text": "Built with Gradio"
+   },
+   "href": "https://gradio.app",
+   "y": 683,
+   "in_first_screen": true
+  },
+  {
+   "tag": "button",
+   "type": "submit",
+   "text": "Settings",
+   "selector": {
+    "text": "Settings"
+   },
+   "y": 683,
+   "in_first_screen": true
+  }
+ ],
+ "internal_links": [],
+ "page_height": 720,
+ "inner_scroller": true,
+ "robots": {
+  "found": true,
+  "allowed": true,
+  "rule": null
+ }
+}

@@ -48,28 +48,40 @@ def cmd_download_models(settings: Settings, files: tuple[str, ...] = MODEL_FILES
     return 0
 
 
-async def _serve(settings: Settings) -> None:
+async def _serve(settings: Settings) -> int:
+    from voxstream.app import VoxStreamApp
     from voxstream.engines.registry import create_engine
     from voxstream.logging import setup_logging
-    from voxstream.transports.websocket.server import VoxStreamServer
 
     setup_logging()
     engine = create_engine(settings.engine, settings)
-    server = VoxStreamServer(settings, engine)
-    await server.start()
-    print(f"voxstream listening on ws://{settings.host}:{server.port}/v1/stream", flush=True)
+    app = VoxStreamApp(settings, engine)
+    try:
+        await app.start()
+    except OSError as exc:
+        print(f"Could not start: {exc}", file=sys.stderr)
+        await engine.stop()
+        return 2
+    host = settings.host
+    if settings.enable_websocket:
+        print(f"voxstream WebSocket ws://{host}:{app.port}/v1/stream", flush=True)
+    else:
+        print(f"voxstream health http://{host}:{app.port}/readyz", flush=True)
+    if settings.enable_grpc:
+        print(f"voxstream gRPC {host}:{app.grpc_port}", flush=True)
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, stop.set)
     await stop.wait()
-    await server.close()  # also calls engine.stop()
+    await app.close()  # also calls engine.stop()
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="voxstream")
     sub = p.add_subparsers(dest="command", required=True)
-    sub.add_parser("serve", help="run the WebSocket streaming service")
+    sub.add_parser("serve", help="run the streaming service (WebSocket and/or gRPC)")
     sub.add_parser("download-models", help="download Kokoro model files into models/")
     v = sub.add_parser("verify-voices", help="check which Kokoro voices speak intelligible Spanish")
     v.add_argument("--voices", nargs="+", help="voices to verify (default: all candidates)")
@@ -85,12 +97,12 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_download_models(settings)
     if args.command == "serve":
         try:
+            settings.validate_transports()
             settings.validate_bind()
         except ValueError as exc:
             print(exc, file=sys.stderr)
             return 2
-        asyncio.run(_serve(settings))
-        return 0
+        return asyncio.run(_serve(settings))
     if args.command == "verify-voices":
         from voxstream.verification.spanish import run_cli
 

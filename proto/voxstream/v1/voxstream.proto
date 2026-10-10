@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package voxstream.v1;
+
+// One Stream call carries exactly one synthesis request.
+service Synthesizer {
+  rpc Stream(stream ClientEvent) returns (stream ServerEvent);
+  rpc GetCapabilities(CapabilitiesRequest) returns (Capabilities);
+}
+
+message ClientEvent {
+  oneof event {
+    Start start = 1;
+    Text text = 2;
+    End end = 3;
+    Cancel cancel = 4;
+  }
+}
+
+message Start {
+  optional string engine = 1;
+  optional string voice = 2;
+  optional string language = 3;  // must be "es" when present
+}
+
+message Text {
+  string text = 1;
+  optional string request_id = 2;  // optional; if set it must match the active request
+}
+
+message End {
+  optional string request_id = 1;
+}
+
+message Cancel {
+  optional string request_id = 1;
+}
+
+message ServerEvent {
+  oneof event {
+    Started started = 1;
+    AudioChunk audio = 2;
+    Completed completed = 3;
+    Cancelled cancelled = 4;
+    Error error = 5;
+  }
+}
+
+message StreamDescriptor {
+  string encoding = 1;       // "pcm_s16le"
+  uint32 sample_rate = 2;    // 24000
+  uint32 channels = 3;       // 1
+  uint32 frame_ms = 4;
+  string voice = 5;
+  string engine = 6;
+  string language = 7;       // "es"
+  string streaming_mode = 8; // e.g. "segmented"
+  string execution_provider = 9;
+}
+
+message Started {
+  string request_id = 1;
+  StreamDescriptor stream = 2;
+}
+
+message AudioChunk {
+  string request_id = 1;
+  uint32 sequence = 2;  // starts at 0, +1 per chunk, continuous
+  bool last = 3;        // terminator chunk: empty pcm, sent after the final audio
+  bytes pcm = 4;
+}
+
+message Completed {
+  string request_id = 1;
+  uint32 audio_frames = 2;
+  double audio_ms = 3;
+  uint32 chars = 4;
+  map<string, double> timing = 5;
+}
+
+message Cancelled {
+  string request_id = 1;
+  uint32 audio_frames_sent = 2;
+}
+
+message Error {
+  optional string request_id = 1;  // unset for a rejected Start
+  string code = 2;                 // same codes as the WebSocket protocol
+  string category = 3;
+  string message = 4;
+  bool retryable = 5;
+}
+
+message CapabilitiesRequest {}
+
+message Capabilities {
+  string engine = 1;
+  string version = 2;
+  repeated string languages = 3;
+  repeated string voices = 4;
+  string encoding = 5;
+  uint32 sample_rate = 6;
+  uint32 channels = 7;
+  string streaming_mode = 8;
+  bool supports_cancel = 9;
+  string execution_provider = 10;
+  string memory_notes = 11;
+}

@@ -1,0 +1,376 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-10-10T23:50:55.639Z",
+  "specification": {
+    "path": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/candidate.json",
+    "sha256": "3f8232592afa17a58836dd087bc6507e44241b6ea6cc7b096dacbe9e1458f27d",
+    "bytes": 6541
+  },
+  "artifact": {
+    "path": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+    "sha256": "836d104a60858a969187c5afcb966023695fa1f0050701051b3607847abfe202",
+    "bytes": 771621
+  },
+  "stages": {
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "/opt/homebrew/Cellar/node/26.11.1/bin/node",
+        "/Users/josearangos/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/candidate.json",
+        "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "3f8232592afa17a58836dd087bc6507e44241b6ea6cc7b096dacbe9e1458f27d",
+          "bytes": 6541
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 543,
+      "command": [
+        "/opt/homebrew/Cellar/node/26.11.1/bin/node",
+        "/Users/josearangos/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/candidate.json",
+        "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "93bf29b4-6afb-480d-ac90-11e3147d51d9",
+        "ok": true,
+        "command": "deliver",
+        "type": "architecture",
+        "input": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/candidate.json",
+        "output": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+        "specification": {
+          "sha256": "3f8232592afa17a58836dd087bc6507e44241b6ea6cc7b096dacbe9e1458f27d",
+          "bytes": 6541
+        },
+        "artifact": {
+          "sha256": "836d104a60858a969187c5afcb966023695fa1f0050701051b3607847abfe202",
+          "bytes": 771621
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 226,
+      "command": [
+        "/opt/homebrew/Cellar/node/26.11.1/bin/node",
+        "/Users/josearangos/.agents/skills/archify/bin/archify.mjs",
+        "check",
+        "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+        "artifact": {
+          "sha256": "836d104a60858a969187c5afcb966023695fa1f0050701051b3607847abfe202",
+          "bytes": 771621
+        },
+        "checks": [
+          {
+            "name": "single_svg",
+            "ok": true,
+            "details": [
+              "found 1 <svg> block(s)"
+            ]
+          },
+          {
+            "name": "finite_svg",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "orthogonal_arrows",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "label_route_clearance",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_crossings",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_corridors",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "container_border_runs",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "route_rhythm",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "legend_clearance",
+            "ok": true,
+            "details": []
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "metrics": {
+            "properCrossings": 0,
+            "resolvedCrossovers": 0,
+            "ambiguousCorridors": 0,
+            "arrowheadCollisions": 0,
+            "containerBorderRuns": 0,
+            "labelRouteClearanceIssues": 0,
+            "labelCanvasOverflowIssues": 0,
+            "minLabelRouteClearance": 50.5,
+            "desktopReadabilityIssues": 0,
+            "viewportHeightIssues": 0,
+            "minProjectedNodeTextPx": 6.118181818181818,
+            "maxBends": 2,
+            "routesOverSuggestedBends": 0,
+            "maxStretch": 1,
+            "routesOverSuggestedStretch": 0,
+            "minSegmentPx": 40,
+            "minInteriorSegmentPx": 110.9,
+            "shortSegmentCount": 0,
+            "shortEndpointSegmentCount": 0,
+            "shortInteriorSegmentCount": 0,
+            "microSegmentCount": 0
+          },
+          "suggestedLimits": {
+            "bendsPerRelationship": 2,
+            "stretch": 1.35,
+            "segmentPx": 16,
+            "microSegmentPx": 8
+          },
+          "routeReview": {
+            "crossings": [],
+            "detours": []
+          },
+          "leadingSpace": {
+            "measured": true,
+            "emptyTopPx": 80,
+            "emptyTopRatio": 0.15,
+            "occupiedTop": 80,
+            "viewBoxTop": 0,
+            "canvasHeight": 532,
+            "typicalNodeHeight": 64,
+            "reviewSuggested": false
+          },
+          "desktopReadability": {
+            "budgetBasis": "recognized-declared-wide",
+            "readerContract": "declared-wide-v1",
+            "availableDiagramWidth": 1346,
+            "actualBudgetPx": 1346,
+            "actualReaderWidth": 1376,
+            "desiredReaderWidth": 1680,
+            "viewportCap": 1376,
+            "limit": "viewport-cap",
+            "requestedTargetPx": 7.5,
+            "requestedTargetMet": false,
+            "hardFloorPx": 6,
+            "hardFloorMet": true,
+            "minimumOwner": {
+              "kind": "edge",
+              "id": "client-ws",
+              "from": "client",
+              "to": "ws"
+            },
+            "minimumSourceTextPx": 8,
+            "minimumProjectedTextPx": 6.118181818181818,
+            "semanticTextCount": 40
+          },
+          "issues": []
+        },
+        "provenance": "current",
+        "deliveryReceiptId": "93bf29b4-6afb-480d-ac90-11e3147d51d9"
+      }
+    },
+    "browser-check": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": 7,
+      "command": [
+        "/opt/homebrew/Cellar/node/26.11.1/bin/node",
+        "/Users/josearangos/.agents/skills/archify/bin/archify.mjs",
+        "browser-check",
+        "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+        "--json",
+        "--require-provenance"
+      ],
+      "execution": "in-process",
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "browser-check",
+        "evidenceKind": "automated-browser",
+        "status": "fail",
+        "visualReview": "not-requested",
+        "provenance": "current",
+        "deliveryReceiptId": "93bf29b4-6afb-480d-ac90-11e3147d51d9",
+        "artifact": {
+          "path": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+          "sha256": "836d104a60858a969187c5afcb966023695fa1f0050701051b3607847abfe202",
+          "bytes": 771621
+        },
+        "state": {
+          "detail": "read",
+          "motion": "still"
+        },
+        "chrome": {
+          "status": "not-checked",
+          "executable": null
+        },
+        "diagnostics": [
+          {
+            "code": "viewer/evidence-path-conflict",
+            "severity": "error",
+            "message": "browser-check will not replace the existing unowned evidence path \"/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.browser-check.json\".",
+            "subject": {
+              "artifact": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+              "evidencePath": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.browser-check.json"
+            },
+            "evidence": {
+              "reason": {
+                "code": "ownership-artifact-mismatch"
+              }
+            },
+            "supportedFixes": [
+              "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+            ]
+          }
+        ],
+        "containment": {
+          "status": "fail",
+          "policy": "fit-or-reader-declared-readable-vertical-scroll",
+          "viewports": []
+        },
+        "themeStates": {
+          "status": "fail",
+          "viewports": []
+        },
+        "readability": {
+          "status": "fail",
+          "minimumProjectedNodeTextPx": 6,
+          "viewports": []
+        },
+        "viewerChrome": {
+          "status": "fail",
+          "viewports": []
+        },
+        "captures": {
+          "status": "not-requested",
+          "screenshots": [],
+          "contactSheet": null
+        },
+        "sidecars": {
+          "receipt": "voxstream.browser-check.json",
+          "files": []
+        },
+        "error": "browser-check will not replace the existing unowned evidence path \"/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.browser-check.json\"."
+      }
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "viewer/evidence-path-conflict",
+      "severity": "error",
+      "message": "browser-check will not replace the existing unowned evidence path \"/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.browser-check.json\".",
+      "subject": {
+        "artifact": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+        "evidencePath": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.browser-check.json"
+      },
+      "evidence": {
+        "reason": {
+          "code": "ownership-artifact-mismatch"
+        }
+      },
+      "supportedFixes": [
+        "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.finalize.json",
+    "summaryReceipt": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.finalize-summary.json",
+    "browserCheckReceipt": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "browser-check",
+  "finishedAt": "2026-10-10T23:50:56.570Z",
+  "durationMs": 931,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.0.1",
+    "availableVersion": "3.0.1",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-10T23:03:00.768Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

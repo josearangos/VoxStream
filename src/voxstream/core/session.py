@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 from voxstream.config import Settings
+from voxstream.core.frames import AudioFrame
 from voxstream.core.metrics import RequestTiming, SegmentTiming
 from voxstream.core.segmenter import Segment, Segmenter
 from voxstream.engines.base import (
@@ -28,7 +29,6 @@ from voxstream.logging import (
     logger,
     request_id_var,
 )
-from voxstream.transports.websocket.framing import encode_frame
 
 State = Literal["OPEN", "ENDING", "COMPLETED", "CANCELLED", "FAILED"]
 TERMINAL: frozenset[str] = frozenset({"COMPLETED", "CANCELLED", "FAILED"})
@@ -69,7 +69,7 @@ class SessionResult:
     error: VoxStreamError | None = None
 
 
-SendFrame = Callable[[bytes], Awaitable[None]]
+SendAudio = Callable[[AudioFrame], Awaitable[None]]
 
 
 @dataclass
@@ -88,13 +88,13 @@ class Session:
         engine: TTSEngine,
         voice: str,
         settings: Settings,
-        send_frame: SendFrame,
+        send_audio: SendAudio,
     ) -> None:
         self.request_id = request_id
         self.engine = engine
         self.voice = voice
         self.settings = settings
-        self._send_frame = send_frame
+        self._send_audio = send_audio
         self.state: State = "OPEN"
         self.timing = RequestTiming()
         self.cancel_token = CancelToken()
@@ -251,10 +251,10 @@ class Session:
                 if self._c.frames_sent:
                     # Terminator: the last-frame flag rides on an empty frame so that the tail of
                     # every segment can be sent without waiting for the next segment.
-                    await self._send_frame(encode_frame(rid, self._c.frames_sent, b"", last=True))
+                    await self._send_audio(AudioFrame(rid, self._c.frames_sent, True, b""))
                     self._c.frames_sent += 1
                 return
-            await self._send_frame(encode_frame(rid, self._c.frames_sent, payload))
+            await self._send_audio(AudioFrame(rid, self._c.frames_sent, False, payload))
             self.timing.mark_first_audio_sent()
             self._c.frames_sent += 1
             self._c.audio_bytes += len(payload)

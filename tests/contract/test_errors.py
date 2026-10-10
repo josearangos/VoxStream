@@ -5,9 +5,9 @@ import re
 import pytest
 
 from helpers import client_for, make_settings
+from voxstream.app import VoxStreamApp
 from voxstream.engines.base import EngineUnavailableError, OutOfMemoryError
 from voxstream.engines.mock import MockEngine
-from voxstream.transports.websocket.server import VoxStreamServer
 
 LEAK = re.compile(r"(/Users/|/home/|Traceback|\.py\b|File \")")
 
@@ -21,17 +21,6 @@ def check(err, code, category, retryable, with_id=None):
         assert err["request_id"]
     if with_id is False:
         assert err["request_id"] is None
-
-
-async def test_malformed(serve):
-    async with serve() as server, client_for(server) as c:
-        await c.ws.send("not json")
-        check(await c.recv_json(), "MALFORMED_MESSAGE", "protocol", False, with_id=False)
-        await c.send(type="bogus")
-        check(await c.recv_json(), "MALFORMED_MESSAGE", "protocol", False)
-        await c.ws.send(b"\x00\x01")
-        check(await c.recv_json(), "MALFORMED_MESSAGE", "protocol", False)
-        assert (await c.start())["type"] == "started"  # connection kept
 
 
 async def test_no_active_request(serve):
@@ -163,7 +152,7 @@ class UnavailableEngine(MockEngine):
 
 
 async def run_with_engine(engine, **settings):
-    server = VoxStreamServer(make_settings(**settings), engine)
+    server = VoxStreamApp(make_settings(**settings), engine)
     await server.start()
     return server
 

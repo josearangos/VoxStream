@@ -1,0 +1,8 @@
+OK   duration 36.77s (limit 60 s), 2.8 MB
+OK   video h264 1920x1080 yuv420p 30/1
+OK   audio aac 48000 Hz 2 ch
+OK   loudness -20.0 LUFS (target -20)
+WARN scene hook: the picture does not change (static page? check the sheet)
+WARN scene type: the picture does not change (static page? check the sheet)
+WARN scene follow: the picture does not change (static page? check the sheet)
+OK   contact sheets: /Users/josearangos/Documents/Study/VoxStream/demo-video/voxstream/out/demo_sheet.png and /Users/josearangos/Documents/Study/VoxStream/demo-video/voxstream/out/demo_scenes.png (look at them)

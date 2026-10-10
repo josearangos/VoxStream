@@ -12,7 +12,7 @@ async def test_session_buffers_stay_bounded_with_stalled_sink():
     settings = make_settings(audio_queue_frames=8)
     gate = asyncio.Event()
 
-    async def stalled(_: bytes) -> None:
+    async def stalled(_: object) -> None:
         await gate.wait()
 
     s = Session(uuid.uuid4(), MockEngine(), "mock_es", settings, stalled)
@@ -41,7 +41,7 @@ async def test_stalled_client_does_not_grow_server_buffers():
         for i in range(0, 1800, 300):
             await c.text(LONG[i : i + 300])
         await asyncio.sleep(0.5)  # the client never reads
-        (conn,) = server._conns
+        (conn,) = server._ws._conns
         assert conn.session is not None
         assert conn.session.audio_queue.qsize() <= 8
         assert conn.session.segment_queue.qsize() <= 4

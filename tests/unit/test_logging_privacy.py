@@ -34,3 +34,5 @@ async def test_logs_have_request_id_and_stages_but_no_text():
     stages = {p.get("stage") for p in parsed}
     assert {"engine_init", "segment_synth", "chunk_sent", "request_end"} <= stages
     assert any(p["request_id"] for p in parsed if p.get("stage") == "segment_synth")
+    assert all(p["transport"] == "websocket" for p in parsed if p.get("stage") == "segment_synth")
+    assert "transport" in parsed[0]

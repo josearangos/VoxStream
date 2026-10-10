@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/candidate.json",
+    "sha256": "3f8232592afa17a58836dd087bc6507e44241b6ea6cc7b096dacbe9e1458f27d",
+    "bytes": 6541
+  },
+  "artifact": {
+    "path": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+    "sha256": "836d104a60858a969187c5afcb966023695fa1f0050701051b3607847abfe202",
+    "bytes": 771621
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "fail"
+  },
+  "failedStage": "browser-check",
+  "diagnostics": [
+    {
+      "code": "viewer/evidence-path-conflict",
+      "severity": "error",
+      "message": "browser-check will not replace the existing unowned evidence path \"/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.browser-check.json\".",
+      "subject": {
+        "artifact": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+        "evidencePath": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.browser-check.json"
+      },
+      "evidence": {
+        "reason": {
+          "code": "ownership-artifact-mismatch"
+        }
+      },
+      "supportedFixes": [
+        "move the conflicting file aside, or choose a separate --out-dir, then rerun browser-check"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.finalize.json",
+    "summaryReceipt": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.finalize-summary.json",
+    "browserCheckReceipt": "/Users/josearangos/Documents/Study/VoxStream/.archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.0.1",
+    "availableVersion": "3.0.1",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-10T23:03:00.768Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 931
+}

@@ -1,0 +1,1 @@
+NOTE: no ELEVENLABS_API_KEY set, so this video has NO VOICE-OVER: the script is burned in as captions (music and click sounds only). Set ELEVENLABS_API_KEY and run the same build again for a narrated video. A local voice (say) is available too: add --local-tts.

@@ -10,6 +10,9 @@ class Settings(BaseSettings):
 
     host: str = "127.0.0.1"
     port: int = 8765
+    enable_websocket: bool = True
+    enable_grpc: bool = True
+    grpc_port: int = 50051
     allow_non_local_bind: bool = False
     engine: str = "kokoro"
     max_text_chars: int = 2000
@@ -35,4 +38,22 @@ class Settings(BaseSettings):
             raise ValueError(
                 f"Refusing to bind to {self.host!r}; set VOXSTREAM_ALLOW_NON_LOCAL_BIND=true "
                 "to expose the service beyond localhost."
+            )
+
+    def validate_transports(self) -> None:
+        """At least one transport must run, and the two listeners need distinct ports."""
+        if not (self.enable_websocket or self.enable_grpc):
+            raise ValueError(
+                "At least one of the two transports must be enabled. Set "
+                "VOXSTREAM_ENABLE_WEBSOCKET=true and/or VOXSTREAM_ENABLE_GRPC=true."
+            )
+        if (
+            self.enable_websocket
+            and self.enable_grpc
+            and self.port == self.grpc_port
+            and self.port != 0
+        ):
+            raise ValueError(
+                f"VOXSTREAM_PORT and VOXSTREAM_GRPC_PORT are both {self.port}; "
+                "choose different ports."
             )

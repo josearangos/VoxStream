@@ -1,0 +1,5 @@
+file '/Users/josearangos/Documents/Study/VoxStream/demo-video/voxstream/build/draft/comp/00_hook.mp4'
+file '/Users/josearangos/Documents/Study/VoxStream/demo-video/voxstream/build/draft/comp/01_type.mp4'
+file '/Users/josearangos/Documents/Study/VoxStream/demo-video/voxstream/build/draft/comp/02_start.mp4'
+file '/Users/josearangos/Documents/Study/VoxStream/demo-video/voxstream/build/draft/comp/03_follow.mp4'
+file '/Users/josearangos/Documents/Study/VoxStream/demo-video/voxstream/build/draft/comp/04_end.mp4'

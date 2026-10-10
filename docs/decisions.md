@@ -38,3 +38,22 @@ and loads slower.
 candidate for a smaller/faster option, but must pass `verify-voices` on its own checksum before it is
 used. fp16 is unsuitable: slower and larger in memory than fp32 on CPU. No variant is excluded by the
 16 GB target; all fit well under the 4 GB ceiling.
+
+## Transports (feature 002)
+- **One request per gRPC call** (R-01): `Stream` is bidirectional; cancelling the call is cancelling the
+  request, and no request-id multiplexing is needed. `GetCapabilities` is a separate unary call.
+- **Errors are in-stream events, call status stays OK** (R-02): terminal outcomes and errors reuse the
+  WebSocket codes, categories and `retryable` flag; non-OK status is only for transport faults
+  (client cancel/deadline, shutdown, an inbound message over 64 KiB).
+- **Generated stubs are committed** (R-11): `src/voxstream/transports/grpc/gen/`, produced by
+  `scripts/gen_proto.sh` from `proto/voxstream/v1/voxstream.proto`; a test fails when they are stale,
+  and `protobuf` is pinned to a range that includes the version the stubs were generated with.
+- **Shared service layer** (R-07): `core/service.py` owns admission, readiness, engine start and request
+  opening, so validation and the single concurrency limit are identical across transports; `core` no
+  longer imports anything from `transports` (sessions emit a neutral `AudioFrame`, R-08).
+- **Health stays on HTTP only** (R-09): `/healthz` and `/readyz` on `VOXSTREAM_PORT` for every mode;
+  a minimal listener serves them when WebSocket is disabled. No gRPC health service.
+- **Default gRPC port 50051** (R-10), both transports enabled by default, plaintext and local-only.
+- **Backpressure**: `grpc.aio` async-generator handlers do apply write backpressure under a stalled
+  reader (verified by `tests/integration/test_grpc_backpressure.py`), so no extra credit counter is
+  used: a bounded outbox of 8 events plus the existing audio queue pause synthesis.

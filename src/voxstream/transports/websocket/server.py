@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from http import HTTPStatus
 from typing import Any
@@ -13,13 +13,15 @@ from websockets.asyncio.server import Server, ServerConnection, serve
 from websockets.exceptions import ConnectionClosed
 from websockets.http11 import Request, Response
 
-from voxstream.config import Settings
 from voxstream.core.admission import AdmissionController
+from voxstream.core.frames import AudioFrame
+from voxstream.core.service import VoxStreamService
 from voxstream.core.session import Session, map_exception
 from voxstream.engines.base import TTSEngine
 from voxstream.errors import ErrorCode, VoxStreamError
-from voxstream.logging import STAGE_ENGINE_INIT, log_stage, logger
+from voxstream.logging import logger, transport_var
 from voxstream.transports.websocket import messages as msg
+from voxstream.transports.websocket.framing import encode_frame
 
 STREAM_PATH = "/v1/stream"
 INBOX_SIZE = 8
@@ -35,20 +37,25 @@ class _Conn:
     )
     session: Session | None = None
     watcher: asyncio.Task[None] | None = None
-    slot_held: bool = False
+    release: Callable[[], None] | None = None
     last_cancelled: str | None = None
     closed: bool = False
 
 
 class VoxStreamServer:
-    def __init__(self, settings: Settings, engine: TTSEngine) -> None:
-        self.settings = settings
-        self.engine = engine
-        self.admission = AdmissionController(settings.max_concurrent_requests)
-        self._engine_lock = asyncio.Lock()
-        self._engine_started = False
+    def __init__(self, service: VoxStreamService) -> None:
+        self.service = service
+        self.settings = service.settings
         self._server: Server | None = None
         self._conns: set[_Conn] = set()
+
+    @property
+    def engine(self) -> TTSEngine:
+        return self.service.engine
+
+    @property
+    def admission(self) -> AdmissionController:
+        return self.service.admission
 
     # -- lifecycle ----------------------------------------------------------------------------
 
@@ -80,7 +87,6 @@ class VoxStreamServer:
                 conn.session.cancel()
         if self._server is not None:
             await self._server.wait_closed()
-        await self.engine.stop()
 
     async def __aenter__(self) -> VoxStreamServer:
         await self.start()
@@ -91,32 +97,12 @@ class VoxStreamServer:
 
     # -- health -------------------------------------------------------------------------------
 
-    def readiness(self) -> dict[str, Any]:
-        caps = self.engine.capabilities()
-        ok, reason, warnings = True, None, []
-        probe = getattr(self.engine, "readiness", None)
-        if probe is not None:
-            ok, reason, warnings = probe()
-        if ok and not caps.voices:
-            ok, reason = False, "No verified Spanish voice is available."
-        body: dict[str, Any] = {
-            "ready": ok,
-            "engine": caps.name,
-            "execution_provider": caps.execution_provider,
-            "voices": caps.voices,
-        }
-        if reason:
-            body["reason"] = reason
-        if warnings:
-            body["warnings"] = warnings
-        return body
-
     def _process_request(self, connection: ServerConnection, request: Request) -> Response | None:
         path = request.path.split("?", 1)[0]
         if path == "/healthz":
             return connection.respond(HTTPStatus.OK, "ok\n")
         if path == "/readyz":
-            body = self.readiness()
+            body = self.service.readiness()
             status = HTTPStatus.OK if body["ready"] else HTTPStatus.SERVICE_UNAVAILABLE
             resp = connection.respond(status, json.dumps(body) + "\n")
             resp.headers["Content-Type"] = "application/json"
@@ -128,6 +114,7 @@ class VoxStreamServer:
     # -- connection handling ------------------------------------------------------------------
 
     async def _handle(self, ws: ServerConnection) -> None:
+        transport_var.set("websocket")
         conn = _Conn(ws)
         self._conns.add(conn)
         worker = asyncio.create_task(self._worker(conn))
@@ -153,6 +140,9 @@ class VoxStreamServer:
             await conn.ws.send(json.dumps(payload))
         except ConnectionClosed:
             conn.closed = True
+
+    async def _send_audio(self, conn: _Conn, f: AudioFrame) -> None:
+        await conn.ws.send(encode_frame(f.request_id, f.sequence, f.pcm, last=f.last))
 
     async def _send_error(
         self, conn: _Conn, err: VoxStreamError, request_id: str | None = None
@@ -200,72 +190,31 @@ class VoxStreamServer:
 
     # -- message handlers ---------------------------------------------------------------------
 
-    async def _ensure_engine(self) -> None:
-        async with self._engine_lock:
-            if self._engine_started:
-                return
-            try:
-                await self.engine.start()
-            except Exception as exc:
-                raise map_exception(exc) from None
-            self._engine_started = True
-            log_stage(STAGE_ENGINE_INIT, engine=self.engine.name)
-
     def _release(self, conn: _Conn) -> None:
-        if conn.slot_held:
-            conn.slot_held = False
-            self.admission.release()
+        if conn.release is not None:
+            release, conn.release = conn.release, None
+            release()
 
     async def _on_start(self, conn: _Conn, m: msg.StartMsg) -> None:
         if conn.session is not None:
             raise VoxStreamError(
                 ErrorCode.BUSY, "This connection already has an active request.", retryable=True
             )
-        if m.engine is not None and m.engine != self.settings.engine:
-            raise VoxStreamError(
-                ErrorCode.UNSUPPORTED_ENGINE,
-                f"Engine {m.engine!r} is not available; this service runs "
-                f"{self.settings.engine!r}.",
-            )
-        if m.language is not None and m.language != "es":
-            raise VoxStreamError(
-                ErrorCode.UNSUPPORTED_LANGUAGE, "Only Spanish ('es') is supported."
-            )
-        ready = self.readiness()
-        if not ready["ready"]:
-            raise VoxStreamError(
-                ErrorCode.ENGINE_UNAVAILABLE,
-                ready.get("reason") or "The speech engine is not ready.",
-            )
-        caps = self.engine.capabilities()
-        if m.voice is not None and m.voice not in caps.voices:
-            raise VoxStreamError(
-                ErrorCode.UNSUPPORTED_VOICE,
-                f"Voice {m.voice!r} is not available. Available voices: {', '.join(caps.voices)}.",
-            )
-        voice = m.voice or (
-            self.settings.default_voice
-            if self.settings.default_voice in caps.voices
-            else caps.voices[0]
+        opened = await self.service.open_session(
+            m.engine, m.voice, m.language, lambda f: self._send_audio(conn, f)
         )
-        self.admission.acquire()  # raises BUSY when the service limit is reached
-        conn.slot_held = True
-        try:
-            await self._ensure_engine()
-        except BaseException:
-            self._release(conn)
-            raise
-        caps = self.engine.capabilities()
-        session = Session(uuid.uuid4(), self.engine, voice, self.settings, conn.ws.send)
+        session = opened.session
+        conn.release = opened.release
         conn.session = session
         conn.last_cancelled = None
+        info = opened.info
         descriptor = msg.StreamDescriptor(
-            frame_ms=self.settings.frame_ms,
-            voice=voice,
-            engine=caps.name,
-            language="es",
-            streaming_mode=caps.streaming_mode,
-            execution_provider=caps.execution_provider,
+            frame_ms=info.frame_ms,
+            voice=info.voice,
+            engine=info.engine,
+            language=info.language,
+            streaming_mode=info.streaming_mode,
+            execution_provider=info.execution_provider,
         )
         await self._send_json(conn, msg.started(str(session.request_id), descriptor))
         session.start()
@@ -320,7 +269,7 @@ class VoxStreamServer:
                 "Capabilities can only be requested when no request is active.",
                 retryable=True,
             )
-        caps = self.engine.capabilities()
+        caps = self.service.capabilities()
         await self._send_json(
             conn,
             {

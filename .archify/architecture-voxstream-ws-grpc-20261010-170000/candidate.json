@@ -1,0 +1,330 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "VoxStream: streaming Spanish TTS over WebSocket and gRPC",
+    "output": ".archify/architecture-voxstream-ws-grpc-20261010-170000/voxstream.html",
+    "quality_profile": "showcase",
+    "locale": "en"
+  },
+  "components": [
+    {
+      "id": "client",
+      "type": "external",
+      "label": "Client",
+      "sublabel": "ws_client.py / grpc_client.py",
+      "pos": [
+        40,
+        240
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "ws",
+      "type": "backend",
+      "label": "WebSocket server",
+      "sublabel": "/v1/stream \u00b7 /healthz \u00b7 /readyz",
+      "pos": [
+        270,
+        120
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "tag": "port 8765"
+    },
+    {
+      "id": "grpc",
+      "type": "backend",
+      "label": "gRPC server",
+      "sublabel": "Synthesizer.Stream \u00b7 GetCapabilities",
+      "pos": [
+        270,
+        360
+      ],
+      "size": [
+        210,
+        64
+      ],
+      "tag": "port 50051"
+    },
+    {
+      "id": "service",
+      "type": "backend",
+      "label": "VoxStreamService",
+      "sublabel": "open_session \u00b7 readiness",
+      "pos": [
+        560,
+        240
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "tag": "shared"
+    },
+    {
+      "id": "admission",
+      "type": "security",
+      "label": "Admission control",
+      "sublabel": "1 active request, any transport",
+      "pos": [
+        555,
+        80
+      ],
+      "size": [
+        190,
+        64
+      ]
+    },
+    {
+      "id": "segmenter",
+      "type": "backend",
+      "label": "Segmenter",
+      "sublabel": "Spanish sentences",
+      "pos": [
+        830,
+        240
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "synth",
+      "type": "backend",
+      "label": "Synthesizer",
+      "sublabel": "frames of 100 ms",
+      "pos": [
+        1080,
+        240
+      ],
+      "size": [
+        140,
+        64
+      ]
+    },
+    {
+      "id": "sender",
+      "type": "backend",
+      "label": "Sender",
+      "sublabel": "AudioFrame, PCM s16le 24 kHz",
+      "pos": [
+        1060,
+        400
+      ],
+      "size": [
+        180,
+        64
+      ]
+    },
+    {
+      "id": "engine",
+      "type": "backend",
+      "label": "TTSEngine interface",
+      "sublabel": "engine chosen by config",
+      "pos": [
+        1320,
+        240
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "mock",
+      "type": "backend",
+      "label": "Mock engine",
+      "sublabel": "tests",
+      "pos": [
+        1325,
+        400
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "kokoro",
+      "type": "backend",
+      "label": "Kokoro-ONNX adapter",
+      "sublabel": "CPU, segmented",
+      "pos": [
+        1560,
+        240
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "gate",
+      "type": "security",
+      "label": "Voice gate",
+      "sublabel": "voice-verification.json",
+      "pos": [
+        1565,
+        80
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "models",
+      "type": "database",
+      "label": "models/",
+      "sublabel": "kokoro-v1.0.onnx",
+      "pos": [
+        1565,
+        400
+      ],
+      "size": [
+        150,
+        64
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "client-ws",
+      "from": "client",
+      "to": "ws",
+      "label": "frames",
+      "variant": "emphasis"
+    },
+    {
+      "id": "client-grpc",
+      "from": "client",
+      "to": "grpc",
+      "label": "protobuf",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ws-service",
+      "from": "ws",
+      "to": "service",
+      "label": "session"
+    },
+    {
+      "id": "grpc-service",
+      "from": "grpc",
+      "to": "service",
+      "label": "session"
+    },
+    {
+      "id": "service-admit",
+      "from": "service",
+      "to": "admission",
+      "label": "acquire slot",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "service-segmenter",
+      "from": "service",
+      "to": "segmenter",
+      "label": "text"
+    },
+    {
+      "id": "segmenter-synth",
+      "from": "segmenter",
+      "to": "synth",
+      "label": "segments (4)"
+    },
+    {
+      "id": "synth-sender",
+      "from": "synth",
+      "to": "sender",
+      "label": "audio queue (8)",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "sender-client",
+      "from": "sender",
+      "to": "client",
+      "label": "audio frames to client",
+      "variant": "emphasis",
+      "fromSide": "left",
+      "toSide": "bottom"
+    },
+    {
+      "id": "synth-engine",
+      "from": "synth",
+      "to": "engine",
+      "label": "synthesize()"
+    },
+    {
+      "id": "engine-kokoro",
+      "from": "engine",
+      "to": "kokoro",
+      "label": "default"
+    },
+    {
+      "id": "engine-mock",
+      "from": "engine",
+      "to": "mock",
+      "label": "ENGINE=mock",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "gate-kokoro",
+      "from": "gate",
+      "to": "kokoro",
+      "label": "verified voices",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "kokoro-models",
+      "from": "kokoro",
+      "to": "models",
+      "label": "loads ONNX",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Two transports, one pipeline",
+      "items": [
+        "WebSocket and gRPC are enabled by default; each can be switched off by configuration",
+        "Both call VoxStreamService.open_session, so validation, error codes and the single concurrency limit are identical",
+        "core never imports a transport: Session emits neutral AudioFrame objects"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Operations",
+      "items": [
+        "Config: VOXSTREAM_* environment variables",
+        "Logs: JSON with request id and transport, never text or audio",
+        "Health is HTTP /healthz and /readyz on the WebSocket port in every mode"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Spanish quality gate",
+      "items": [
+        "voxstream verify-voices transcribes audio with Whisper",
+        "Only voices that pass for the installed model are served"
+      ]
+    }
+  ]
+}

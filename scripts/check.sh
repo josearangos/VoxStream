@@ -5,4 +5,5 @@ cd "$(dirname "$0")/.."
 uv run ruff check src tests examples scripts
 uv run ruff format --check src tests examples scripts
 uv run mypy src
+# the stub-freshness test fails with "run scripts/gen_proto.sh" when the stubs are stale
 uv run pytest

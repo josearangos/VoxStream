@@ -9,9 +9,9 @@ from typing import Any
 import pytest
 
 from helpers import running_server
+from voxstream.app import VoxStreamApp
 from voxstream.engines.base import TTSEngine
 from voxstream.engines.mock import MockEngine
-from voxstream.transports.websocket.server import VoxStreamServer
 
 
 @pytest.fixture(params=["mock", pytest.param("kokoro", marks=pytest.mark.model)])
@@ -28,16 +28,24 @@ def build_engine(name: str, **mock_kw: Any) -> TTSEngine:
     return create_engine(name, Settings(_env_file=None, engine=name))
 
 
+@pytest.fixture(params=["websocket", "grpc"])
+def transport(request: pytest.FixtureRequest) -> str:
+    return str(request.param)
+
+
 @pytest.fixture
-def serve(engine_name: str) -> Callable[..., AbstractAsyncContextManager[VoxStreamServer]]:
+def serve(
+    engine_name: str, transport: str
+) -> Callable[..., AbstractAsyncContextManager[VoxStreamApp]]:
     """``async with serve(**settings) as server`` -- mock options apply to the mock engine only."""
 
     @asynccontextmanager
     async def _serve(
         mock: dict[str, Any] | None = None, **settings: Any
-    ) -> AsyncIterator[VoxStreamServer]:
+    ) -> AsyncIterator[VoxStreamApp]:
         engine = build_engine(engine_name, **(mock or {}))
         async with running_server(engine, engine=engine_name, **settings) as server:
+            server.transport = transport
             yield server
 
     return _serve

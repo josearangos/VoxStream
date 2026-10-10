@@ -24,12 +24,16 @@ async def test_kokoro_reports_segmented():
     assert KokoroEngine(Settings(_env_file=None)).capabilities().streaming_mode == "segmented"
 
 
-async def test_capabilities_rejected_while_request_active(serve):
+async def test_capabilities_while_request_active(serve):
+    """WebSocket rejects the query with BUSY; gRPC capabilities is a separate unary call."""
     async with serve() as server, client_for(server) as c:
         await c.start()
         await c.send(type="capabilities")
-        err = await c.recv_json()
-        assert err["type"] == "error" and err["code"] == "BUSY"
+        reply = await c.recv_json()
+        if server.transport == "websocket":
+            assert reply["type"] == "error" and reply["code"] == "BUSY"
+        else:
+            assert reply["type"] == "capabilities" and reply["voices"]
         await c.cancel()
         await c.collect()
 

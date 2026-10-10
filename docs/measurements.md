@@ -24,3 +24,23 @@ because the real-time factor is below 1.
 Peak memory is the server process RSS sampled after each request, not a continuous trace.
 Cold-start requests exceed 1 s; warm the service with one request (or `/readyz` plus a short
 dummy request) before latency-sensitive use.
+
+## gRPC versus WebSocket (feature 002, sanity check)
+
+Same machine, model, voice, text and script (`scripts/measure_stream.py --transport {websocket,grpc}`),
+20 consecutive requests per transport against one running service (WebSocket first, then gRPC).
+**Local loopback only, not a remote network.** This is a sanity check; the formal benchmark is the
+next feature.
+
+| Metric (median / p95) | WebSocket | gRPC |
+|-----------------------|----------:|-----:|
+| Time to first audio after sentence 1 | 431 / 506 ms | 437 / 491 ms |
+| Real-time factor | 0.28 / 0.34 | 0.28 / 0.33 |
+| Generation time per request | 2.97 / 3.54 s | 2.98 / 3.49 s |
+| Delivery time (first to last frame) | 2.56 / 2.88 s | 2.54 / 3.11 s |
+| Median inter-frame gap | 0.27 / 0.28 ms | 0.14 / 0.21 ms |
+| Peak server RSS (sampled after each request) | 686 MB | 583 MB (same process, after the WebSocket run) |
+
+Both transports stayed far below the 4 GB ceiling over 20 requests with no out-of-memory failure
+(SC-006). The gRPC run followed the WebSocket run in the same process, so its RSS and cold-start
+numbers are not comparable.

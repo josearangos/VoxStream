@@ -2,20 +2,20 @@ import asyncio
 import uuid
 
 from voxstream.config import Settings
+from voxstream.core.frames import AudioFrame
 from voxstream.core.session import Session
 from voxstream.engines.mock import MockEngine
-from voxstream.transports.websocket.framing import decode_frame
 
 
 class Sink:
     """Collects what the session would write to the socket."""
 
     def __init__(self):
-        self.frames: list[bytes] = []
+        self.frames: list[AudioFrame] = []
         self.events: list[str] = []
 
-    async def send_frame(self, data: bytes) -> None:
-        self.frames.append(data)
+    async def send_audio(self, frame: AudioFrame) -> None:
+        self.frames.append(frame)
         self.events.append("frame")
 
 
@@ -23,7 +23,7 @@ def make(engine=None, **kw):
     settings = Settings(_env_file=None, **kw)
     engine = engine or MockEngine()
     sink = Sink()
-    s = Session(uuid.uuid4(), engine, "mock_es", settings, sink.send_frame)
+    s = Session(uuid.uuid4(), engine, "mock_es", settings, sink.send_audio)
     return s, sink, engine
 
 
@@ -35,7 +35,7 @@ async def test_segments_in_order_and_sequence_continuous():
     result = await s.wait()
     assert result.state == "COMPLETED"
     assert engine.synthesized == ["Primera frase.", "Segunda frase."]
-    frames = [decode_frame(f) for f in sink.frames]
+    frames = sink.frames
     assert [f.sequence for f in frames] == list(range(len(frames)))
     assert [f.last for f in frames[:-1]] == [False] * (len(frames) - 1)
     assert frames[-1].last
@@ -47,12 +47,12 @@ async def test_frames_sliced_to_frame_ms():
     await s.feed("Hola mundo.")
     await s.end()
     await s.wait()
-    frames = [decode_frame(f) for f in sink.frames]
+    frames = sink.frames
     full = 24000 * 100 // 1000 * 2
     # One segment: full frames, a short tail, then the empty frame carrying the last flag.
-    assert all(len(f.payload) == full for f in frames[:-2])
-    assert 0 < len(frames[-2].payload) <= full
-    assert frames[-1].last and frames[-1].payload == b""
+    assert all(len(f.pcm) == full for f in frames[:-2])
+    assert 0 < len(frames[-2].pcm) <= full
+    assert frames[-1].last and frames[-1].pcm == b""
 
 
 async def test_first_frame_before_end():
@@ -99,7 +99,7 @@ async def test_last_flag_only_on_final_frame_and_timing():
     await s.feed("Hola.")
     await s.end()
     result = await s.wait()
-    frames = [decode_frame(f) for f in sink.frames]
+    frames = sink.frames
     assert sum(f.last for f in frames) == 1
     assert result.audio_frames == len(frames)
     assert result.timing.rtf is not None

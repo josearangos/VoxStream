@@ -8,6 +8,7 @@ from contextvars import ContextVar
 from typing import Any
 
 request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
+transport_var: ContextVar[str | None] = ContextVar("transport", default=None)
 
 STAGE_ENGINE_INIT = "engine_init"
 STAGE_SEGMENT_SYNTH = "segment_synth"
@@ -24,6 +25,7 @@ class JsonFormatter(logging.Formatter):
             "level": record.levelname,
             "logger": record.name,
             "request_id": request_id_var.get(),
+            "transport": transport_var.get(),
             "msg": record.getMessage(),
         }
         stage = getattr(record, "stage", None)

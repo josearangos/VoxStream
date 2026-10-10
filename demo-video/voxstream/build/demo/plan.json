@@ -1,0 +1,405 @@
+{
+ "url": "http://127.0.0.1:7860/",
+ "viewport": [
+  1280,
+  720
+ ],
+ "scale": 2,
+ "fps": 30,
+ "draft": false,
+ "dry": false,
+ "outdir": "/Users/josearangos/Documents/Study/VoxStream/demo-video/voxstream/build/demo/scenes",
+ "hide": [],
+ "css": "",
+ "locale": "en-US",
+ "timezone": null,
+ "color_scheme": "light",
+ "brand": "#f97316",
+ "scenes": [
+  {
+   "id": "hook",
+   "dur": 7.0,
+   "pre": 0.4,
+   "words": [
+    [
+     "Reading",
+     0.0,
+     0.466
+    ],
+    [
+     "aloud",
+     0.506,
+     0.856
+    ],
+    [
+     "and",
+     0.886,
+     1.119
+    ],
+    [
+     "losing",
+     1.139,
+     1.547
+    ],
+    [
+     "your",
+     1.582,
+     1.873
+    ],
+    [
+     "place?",
+     1.899,
+     2.306
+    ],
+    [
+     "VoxStream",
+     2.542,
+     3.124
+    ],
+    [
+     "Teleprompter",
+     3.175,
+     3.932
+    ],
+    [
+     "speaks",
+     3.997,
+     4.405
+    ],
+    [
+     "your",
+     4.441,
+     4.732
+    ],
+    [
+     "text",
+     4.757,
+     5.048
+    ],
+    [
+     "and",
+     5.073,
+     5.306
+    ],
+    [
+     "follows",
+     5.327,
+     5.792
+    ],
+    [
+     "along.",
+     5.833,
+     6.241
+    ]
+   ],
+   "actions": [
+    {
+     "goto": "/"
+    },
+    {
+     "wait_for": {
+      "text": "Start"
+     }
+    },
+    {
+     "pause": 1
+    }
+   ],
+   "card": null
+  },
+  {
+   "id": "type",
+   "dur": 9.0,
+   "pre": 0.2,
+   "words": [
+    [
+     "Type",
+     0.0,
+     0.291
+    ],
+    [
+     "or",
+     0.316,
+     0.491
+    ],
+    [
+     "paste",
+     0.506,
+     0.856
+    ],
+    [
+     "your",
+     0.886,
+     1.177
+    ],
+    [
+     "Spanish",
+     1.203,
+     1.668
+    ],
+    [
+     "text",
+     1.709,
+     2.0
+    ],
+    [
+     "into",
+     2.025,
+     2.316
+    ],
+    [
+     "the",
+     2.342,
+     2.575
+    ],
+    [
+     "box.",
+     2.595,
+     2.886
+    ]
+   ],
+   "actions": [
+    {
+     "type": "Buenos d\u00edas. Este es un texto de ejemplo para probar la voz y el resaltado de palabras.",
+     "into": "textarea >> nth=0",
+     "clear": true
+    }
+   ],
+   "card": null
+  },
+  {
+   "id": "start",
+   "dur": 6.0,
+   "pre": 0.2,
+   "words": [
+    [
+     "Press",
+     0.0,
+     0.349
+    ],
+    [
+     "Start.",
+     0.38,
+     0.787
+    ],
+    [
+     "The",
+     1.023,
+     1.256
+    ],
+    [
+     "status",
+     1.276,
+     1.684
+    ],
+    [
+     "changes",
+     1.719,
+     2.185
+    ],
+    [
+     "to",
+     2.225,
+     2.4
+    ],
+    [
+     "Playing",
+     2.415,
+     2.881
+    ],
+    [
+     "and",
+     2.922,
+     3.154
+    ],
+    [
+     "the",
+     3.175,
+     3.408
+    ],
+    [
+     "audio",
+     3.428,
+     3.777
+    ],
+    [
+     "begins.",
+     3.808,
+     4.273
+    ]
+   ],
+   "actions": [
+    {
+     "click": {
+      "role": "button",
+      "name": "Start"
+     },
+     "at": "Start",
+     "zoom": false
+    },
+    {
+     "pause": 2.5
+    }
+   ],
+   "card": null
+  },
+  {
+   "id": "follow",
+   "dur": 8.0,
+   "pre": 0.2,
+   "words": [
+    [
+     "Each",
+     0.0,
+     0.291
+    ],
+    [
+     "word",
+     0.316,
+     0.608
+    ],
+    [
+     "is",
+     0.633,
+     0.808
+    ],
+    [
+     "highlighted",
+     0.823,
+     1.522
+    ],
+    [
+     "as",
+     1.582,
+     1.757
+    ],
+    [
+     "it",
+     1.772,
+     1.947
+    ],
+    [
+     "is",
+     1.962,
+     2.137
+    ],
+    [
+     "spoken,",
+     2.152,
+     2.618
+    ],
+    [
+     "so",
+     2.738,
+     2.913
+    ],
+    [
+     "you",
+     2.928,
+     3.161
+    ],
+    [
+     "can",
+     3.181,
+     3.414
+    ],
+    [
+     "follow",
+     3.434,
+     3.842
+    ],
+    [
+     "along",
+     3.877,
+     4.227
+    ],
+    [
+     "like",
+     4.257,
+     4.548
+    ],
+    [
+     "a",
+     4.574,
+     4.69
+    ],
+    [
+     "teleprompter.",
+     4.7,
+     5.515
+    ]
+   ],
+   "actions": [
+    {
+     "scroll_by": 300
+    },
+    {
+     "pause": 5
+    }
+   ],
+   "card": null
+  },
+  {
+   "id": "end",
+   "dur": 6.2,
+   "pre": 0.2,
+   "words": [
+    [
+     "VoxStream",
+     0.0,
+     0.582
+    ],
+    [
+     "Teleprompter.",
+     0.633,
+     1.448
+    ],
+    [
+     "Type",
+     1.719,
+     2.01
+    ],
+    [
+     "Spanish",
+     2.035,
+     2.501
+    ],
+    [
+     "text,",
+     2.542,
+     2.891
+    ],
+    [
+     "press",
+     3.002,
+     3.351
+    ],
+    [
+     "Start,",
+     3.381,
+     3.789
+    ],
+    [
+     "and",
+     3.904,
+     4.137
+    ],
+    [
+     "follow",
+     4.157,
+     4.565
+    ],
+    [
+     "along.",
+     4.601,
+     5.008
+    ]
+   ],
+   "actions": [],
+   "card": {
+    "title": "VoxStream Teleprompter",
+    "subtitle": "Type Spanish text, press Start, and follow along."
+   }
+  }
+ ]
+}
