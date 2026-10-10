@@ -1,0 +1,224 @@
+{
+  "model": {
+    "name": "kokoro-v1.0",
+    "sha256": "beb0d1848dee9a49da392cc3df26958d46cfa35d321edf434f52949153f0df3a"
+  },
+  "recognizer": {
+    "name": "faster-whisper small",
+    "language": "es"
+  },
+  "threshold": {
+    "mean_wer": 0.15,
+    "max_sentence_wer": 0.35
+  },
+  "voices": {
+    "ef_dora": {
+      "mean_wer": 0.0,
+      "max_sentence_wer": 0.0,
+      "passed": true,
+      "sentences": [
+        {
+          "reference": "El niño pequeño jugó con su perro en el jardín.",
+          "transcript": "El niño pequeño jugó con su perro en el jardín.",
+          "wer": 0.0
+        },
+        {
+          "reference": "¿Cómo te llamas y dónde vives?",
+          "transcript": "¿Cómo te llamas y dónde vives?",
+          "wer": 0.0
+        },
+        {
+          "reference": "Mañana por la mañana iremos a la montaña.",
+          "transcript": "Mañana por la mañana iremos a la montaña.",
+          "wer": 0.0
+        },
+        {
+          "reference": "¡Qué sorpresa tan agradable verte por aquí!",
+          "transcript": "que sorpresa tan agradable verte por aquí.",
+          "wer": 0.0
+        },
+        {
+          "reference": "La Sra. García compró pan, leche y huevos en el mercado.",
+          "transcript": "La señora García compró pan, leche y huevos en el mercado.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Tengo 25 años y vivo en el piso 3.",
+          "transcript": "Tengo 25 años y vivo en el piso 3.",
+          "wer": 0.0
+        },
+        {
+          "reference": "El pingüino, el cóndor y el águila viven en lugares muy distintos.",
+          "transcript": "El pingüino, el cóndor y el águila viven en lugares muy distintos.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Necesito 150 pesos para pagar el almuerzo.",
+          "transcript": "Necesito 150 pesos para pagar el almuerzo.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Después de la lluvia, salió el arcoíris sobre el río.",
+          "transcript": "Después de la lluvia, salió el arcoiris sobre el río.",
+          "wer": 0.0
+        },
+        {
+          "reference": "¿Quién quiere café, té o chocolate caliente?",
+          "transcript": "¿Quién quiere café, té o chocolate caliente?",
+          "wer": 0.0
+        },
+        {
+          "reference": "El Dr. Pérez enseña español en la universidad desde hace 10 años.",
+          "transcript": "El doctor Pérez enseña español en la universidad desde hace 10 años.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Los estudiantes escribieron una carta a su profesor sobre la cultura mexicana.",
+          "transcript": "Los estudiantes escribieron una carta a su profesor sobre la cultura mexicana.",
+          "wer": 0.0
+        }
+      ],
+      "manual_signoff": {
+        "by": "josearangos",
+        "date": "2026-10-10"
+      }
+    },
+    "em_alex": {
+      "mean_wer": 0.0104,
+      "max_sentence_wer": 0.125,
+      "passed": true,
+      "sentences": [
+        {
+          "reference": "El niño pequeño jugó con su perro en el jardín.",
+          "transcript": "El niño pequeño jugó con su perro en el jardín.",
+          "wer": 0.0
+        },
+        {
+          "reference": "¿Cómo te llamas y dónde vives?",
+          "transcript": "¿Cómo te llamas y dónde vives?",
+          "wer": 0.0
+        },
+        {
+          "reference": "Mañana por la mañana iremos a la montaña.",
+          "transcript": "¡Pañana por la mañana iremos a la montaña!",
+          "wer": 0.125
+        },
+        {
+          "reference": "¡Qué sorpresa tan agradable verte por aquí!",
+          "transcript": "Qué sorpresa tan agradable verte por aquí.",
+          "wer": 0.0
+        },
+        {
+          "reference": "La Sra. García compró pan, leche y huevos en el mercado.",
+          "transcript": "La Señora García compró pan, leche y huevos en el mercado.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Tengo 25 años y vivo en el piso 3.",
+          "transcript": "Tengo 25 años y vivo en el piso 3.",
+          "wer": 0.0
+        },
+        {
+          "reference": "El pingüino, el cóndor y el águila viven en lugares muy distintos.",
+          "transcript": "El pingüino, el condor y el águila, viven en lugares muy distintos.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Necesito 150 pesos para pagar el almuerzo.",
+          "transcript": "Necesito 150 pesos para pagar el almuerzo.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Después de la lluvia, salió el arcoíris sobre el río.",
+          "transcript": "Después de la lluvia, salió el arcoiris sobre el río.",
+          "wer": 0.0
+        },
+        {
+          "reference": "¿Quién quiere café, té o chocolate caliente?",
+          "transcript": "¿Quién quiere café, té o chocolate caliente?",
+          "wer": 0.0
+        },
+        {
+          "reference": "El Dr. Pérez enseña español en la universidad desde hace 10 años.",
+          "transcript": "El doctor Pérez enseña español en la universidad desde hace 10 años.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Los estudiantes escribieron una carta a su profesor sobre la cultura mexicana.",
+          "transcript": "Los estudiantes escribieron una carta a su profesor sobre la cultura mexicana.",
+          "wer": 0.0
+        }
+      ],
+      "manual_signoff": null
+    },
+    "em_santa": {
+      "mean_wer": 0.0083,
+      "max_sentence_wer": 0.1,
+      "passed": true,
+      "sentences": [
+        {
+          "reference": "El niño pequeño jugó con su perro en el jardín.",
+          "transcript": "El niño pequeño jugó con su perro en el jardín.",
+          "wer": 0.0
+        },
+        {
+          "reference": "¿Cómo te llamas y dónde vives?",
+          "transcript": "¿Cómo te llamas y dónde vives?",
+          "wer": 0.0
+        },
+        {
+          "reference": "Mañana por la mañana iremos a la montaña.",
+          "transcript": "Mañana por la mañana iremos a la montaña.",
+          "wer": 0.0
+        },
+        {
+          "reference": "¡Qué sorpresa tan agradable verte por aquí!",
+          "transcript": "¡Qué sorpresa tan agradable verte por aquí!",
+          "wer": 0.0
+        },
+        {
+          "reference": "La Sra. García compró pan, leche y huevos en el mercado.",
+          "transcript": "La señora García compró pan, leche y huevos en el mercado.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Tengo 25 años y vivo en el piso 3.",
+          "transcript": "Tengo 25 años y vivo en el piso 3.",
+          "wer": 0.0
+        },
+        {
+          "reference": "El pingüino, el cóndor y el águila viven en lugares muy distintos.",
+          "transcript": "El pingüino, el condor y el águila viven en lugares muy distintos.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Necesito 150 pesos para pagar el almuerzo.",
+          "transcript": "Necesito 150 pesos para pagar el almuerzo.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Después de la lluvia, salió el arcoíris sobre el río.",
+          "transcript": "Después de la lluvia, salió el arcoíri sobre el río.",
+          "wer": 0.1
+        },
+        {
+          "reference": "¿Quién quiere café, té o chocolate caliente?",
+          "transcript": "Quien quiere café, té o chocolate caliente.",
+          "wer": 0.0
+        },
+        {
+          "reference": "El Dr. Pérez enseña español en la universidad desde hace 10 años.",
+          "transcript": "El doctor Pérez enseña español en la universidad desde hace 10 años.",
+          "wer": 0.0
+        },
+        {
+          "reference": "Los estudiantes escribieron una carta a su profesor sobre la cultura mexicana.",
+          "transcript": "Los estudiantes escribieron una carta a su profesor sobre la cultura mexicana.",
+          "wer": 0.0
+        }
+      ],
+      "manual_signoff": null
+    }
+  },
+  "generated_at": "2026-10-10T19:22:35Z"
+}

@@ -147,3 +147,21 @@ documented from public sources and MUST be confirmed on the target machine durin
 2. Phonemizer (espeak-ng) availability on macOS arm64 must be confirmed.
 3. Cancel latency bound by per-segment inference time.
 4. Core ML provider may be incorrect or slower; CPU stays the default.
+
+## Spike results
+
+Measured 2026-10-10 on MacBook (Apple M2 Pro, 16 GB, macOS 26.2), Python 3.12.11 under `uv`,
+`kokoro-onnx` 0.6.1, `onnxruntime` 1.31.0, `websockets` 17.2.
+
+- **T029 install and phonemizer**: `kokoro-onnx` installs on arm64 under Python 3.12. The phonemizer
+  works without Homebrew `espeak-ng`: `espeakng-loader` bundles the library. Language `es` is
+  accepted; `ef_dora`, `em_alex` and `em_santa` all synthesize Spanish and appear in
+  `Kokoro.get_voices()`.
+- **Files** (release `model-files-v1.1`): `kokoro-v1.0.onnx` 325,505,369 bytes; `voices-v1.0.bin`
+  28,214,398 bytes; `kokoro-v1.0.int8.onnx` 114,119,327; `kokoro-v1.0.fp16.onnx` 163,527,961.
+  Note: the voices file is `voices-v1.0.bin` in both `model-files-v1.0` and `-v1.1`.
+- **T034 service run (Kokoro, CPU)**: warm time to first audio (from the text piece that completes
+  the first sentence) median 430 ms, p95 448 ms; real-time factor 0.28; peak server RSS 621 MB.
+  The first request after start is slower (1.5-1.6 s) because the model loads lazily.
+  Details in `docs/measurements.md`.
+- **API note**: `kokoro-onnx` 0.6.1 provides `create_stream` (async, batch-wise), used by the adapter.

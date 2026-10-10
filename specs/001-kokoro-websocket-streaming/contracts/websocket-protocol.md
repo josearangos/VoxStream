@@ -53,6 +53,9 @@ offset  size  field
 21      N     PCM payload: signed 16-bit little-endian, mono, 24000 Hz (per `stream` descriptor)
 ```
 
+The last frame (flag bit 0 set) may carry an empty payload; it is sent after the final audio so that
+no segment tail waits for the next segment.
+
 Guarantees: frames for a request arrive in sequence order with no gaps; no audio frame follows a
 terminal message; the descriptor in `started` is sufficient to decode every frame.
 
