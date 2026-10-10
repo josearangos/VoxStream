@@ -4,6 +4,13 @@ Local Spanish text-to-speech streaming service. Clients stream text over a WebSo
 receive PCM audio frames while the text is still arriving. The engine is Kokoro-ONNX (CPU), behind a common
 `TTSEngine` interface.
 
+## Demo
+
+![VoxStream Teleprompter demo](docs/media/demo.gif)
+
+Gradio teleprompter: type Spanish text, press Start, and each word is highlighted as it is spoken.
+The GIF has no sound; the full-quality video is [`demo-video/voxstream/out/demo.mp4`](demo-video/voxstream/out/demo.mp4).
+
 ## Architecture
 
 ![VoxStream architecture](docs/architecture.png)
