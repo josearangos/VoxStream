@@ -53,3 +53,28 @@ def test_no_passing_voice_is_not_ready(tmp_path):
     ok, reason, _ = KokoroEngine(s).readiness()
     assert not ok and "verify-voices" in reason
     assert KokoroEngine(s).capabilities().voices == []
+
+
+def vv_write(path, sha="sha1", voices=None):
+    path.write_text(json.dumps({"model": {"name": "vv", "sha256": sha}, "voices": voices}))
+
+
+def test_vibevoice_stale_checksum_hides_everything(tmp_path):
+    f = tmp_path / "vibevoice-verification.json"
+    vv_write(f, sha="old", voices={"sp-Spk2_woman": {"passed": True}})
+    assert load_gate(f, "new").voices == []
+
+
+def test_vibevoice_all_failed_reports_reason(tmp_path):
+    f = tmp_path / "vibevoice-verification.json"
+    vv_write(f, voices={"sp-Spk2_woman": {"passed": False}, "sp-Spk3_man": {"passed": False}})
+    gate = load_gate(f, "sha1")
+    assert gate.voices == [] and "No Spanish voice passed verification" in gate.reason
+
+
+def test_vibevoice_one_passed_is_exposed_with_signoff_warning(tmp_path):
+    f = tmp_path / "vibevoice-verification.json"
+    vv_write(f, voices={"sp-Spk2_woman": {"passed": False}, "sp-Spk4_woman": {"passed": True}})
+    gate = load_gate(f, "sha1")
+    assert gate.voices == ["sp-Spk4_woman"]
+    assert "sp-Spk4_woman" in gate.warnings[0] and "--signoff" in gate.warnings[0]

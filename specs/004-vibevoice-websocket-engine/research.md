@@ -68,3 +68,42 @@ those pages; anything not found there is marked **Unknown** and becomes a spike 
 - **Finding**: Not stated on the pages; the tokenizer is described at 24 kHz.
 - **Decision**: Assume 24 kHz mono and confirm in the spike; the adapter resamples only if needed, so
   the stream format stays `pcm_s16le` at the rate reported in the acknowledgement.
+
+## R-09 Spike results (2026-10-10, M2 Pro 16 GB, macOS)
+
+Throwaway script (scratchpad, not committed). Python 3.12, `torch==2.7.1`, `transformers==4.51.3`,
+upstream `vibevoice` from `git+https://github.com/microsoft/VibeVoice.git`.
+
+- **Go/no-go**: **Go**. Both CPU and MPS work with the official PyTorch implementation (float32,
+  `attn_implementation="sdpa"`, 5 diffusion steps, `cfg_scale=1.5`, greedy).
+- **torch version**: `torch==2.14.1` fails to load the voice presets with `weights_only=True`
+  (`SETITEMS ... BaseModelOutputWithPast`). `torch==2.7.1` loads them. Pin it. Do not use
+  `weights_only=False` (presets are pickles from GitHub attachments).
+- **Streaming API**: `VibeVoiceStreamingForConditionalGenerationInference.generate(..., audio_streamer=AudioStreamer(batch_size=1), stop_check_fn=<callable>)`
+  run in a worker thread; chunks are read from `audio_streamer.get_stream(0)` (float, mono). Stop hook:
+  `stop_check_fn` (return true to stop); call `audio_streamer.end()` afterwards. Processor:
+  `VibeVoiceStreamingProcessor.process_input_with_cached_prompt(text, cached_prompt, ...)`. Streaming
+  mode is `incremental` (21–42 chunks per sentence).
+- **Sample rate**: 24 kHz mono.
+- **Spanish presets** (`experimental_voices_sp.tar.gz` from `demo/download_experimental_voices.sh`,
+  extracted to `sp/`): `sp-Spk2_woman`, `sp-Spk3_man`, `sp-Spk4_woman`, `sp-Spk5_man`
+  (four voices, not two).
+- **Download**: model `microsoft/VibeVoice-Realtime-0.5B` via Hugging Face, 1.9 GB.
+- **Measurements** (one sentence, "Hola, esto es una prueba de síntesis de voz en español."):
+
+  | Device | Voice | First chunk (s) | Total (s) | Audio (s) | RTF |
+  |--------|-------|-----------------|-----------|-----------|-----|
+  | cpu | Spk2_woman | 1.44 | 28.3 | 2.8 | 10.1 |
+  | cpu | Spk3_man | 1.19 | 39.7 | 4.13 | 9.6 |
+  | cpu | Spk4_woman | 1.19 | 32.8 | 4.0 | 8.2 |
+  | cpu | Spk5_man | 1.17 | 46.1 | 5.6 | 8.2 |
+  | mps | Spk2_woman | 11.39 (cold) | 21.4 | 2.8 | 7.7 |
+  | mps | Spk3_man | 0.36 | 10.4 | 4.27 | 2.4 |
+  | mps | Spk4_woman | 0.28 | 5.9 | 3.2 | 1.9 |
+  | mps | Spk5_man | 0.24 | 7.2 | 4.0 | 1.8 |
+
+  Peak RSS about 7.7 GB per process (both devices). Audio length for the same text varies from 2.8 s
+  to 5.6 s across voices, which suggests unreliable Spanish; the verification gate decides.
+- **Implications**: first chunk meets the 2 s target (SC-003) warm on both devices; the engine is not
+  faster than real time on this machine (RTF above 1), so long text will underrun playback. Default
+  device stays `cpu`; `mps` is recommended and selectable.

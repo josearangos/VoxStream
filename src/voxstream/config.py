@@ -31,6 +31,18 @@ class Settings(BaseSettings):
     verify_max_sentence_wer: float = 0.35
     model_file: str = "kokoro-v1.0.onnx"
     voices_file: str = "voices-v1.0.bin"
+    vibevoice_model_dir: str = "models/vibevoice"
+    vibevoice_device: str = "cpu"
+
+    def verification_file_for(self, engine: str) -> str:
+        """Verification result path for an engine (kokoro keeps its original file)."""
+        if engine == "vibevoice":
+            return "verification/vibevoice-verification.json"
+        return self.verification_file
+
+    @property
+    def engine_verification_file(self) -> str:
+        return self.verification_file_for(self.engine)
 
     def validate_bind(self) -> None:
         """Binding anywhere but loopback requires an explicit opt-in (FR-022)."""
@@ -57,3 +69,17 @@ class Settings(BaseSettings):
                 f"VOXSTREAM_PORT and VOXSTREAM_GRPC_PORT are both {self.port}; "
                 "choose different ports."
             )
+        from voxstream.engines.registry import ENGINE_TRANSPORTS
+
+        supported = ENGINE_TRANSPORTS.get(self.engine)
+        if supported is not None:
+            if self.enable_grpc and "grpc" not in supported:
+                raise ValueError(
+                    f"engine {self.engine!r} is not supported on the gRPC transport; "
+                    "set VOXSTREAM_ENABLE_GRPC=false."
+                )
+            if self.enable_websocket and "websocket" not in supported:
+                raise ValueError(
+                    f"engine {self.engine!r} is not supported on the WebSocket transport; "
+                    "set VOXSTREAM_ENABLE_WEBSOCKET=false."
+                )

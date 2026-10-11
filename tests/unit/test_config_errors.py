@@ -65,3 +65,24 @@ def test_grpc_port_must_differ_from_port_unless_ephemeral():
     with pytest.raises(ValueError, match="VOXSTREAM_GRPC_PORT"):
         Settings(_env_file=None, port=9000, grpc_port=9000).validate_transports()
     Settings(_env_file=None, port=0, grpc_port=0).validate_transports()
+
+
+def test_vibevoice_with_grpc_enabled_is_refused():
+    s = Settings(_env_file=None, engine="vibevoice", enable_grpc=True)
+    with pytest.raises(ValueError) as exc:
+        s.validate_transports()
+    assert str(exc.value) == (
+        "engine 'vibevoice' is not supported on the gRPC transport; "
+        "set VOXSTREAM_ENABLE_GRPC=false."
+    )
+
+
+def test_vibevoice_with_grpc_disabled_passes():
+    Settings(_env_file=None, engine="vibevoice", enable_grpc=False).validate_transports()
+
+
+def test_vibevoice_defaults_and_verification_path():
+    s = Settings(_env_file=None, engine="vibevoice")
+    assert s.vibevoice_model_dir == "models/vibevoice" and s.vibevoice_device == "cpu"
+    assert s.engine_verification_file == "verification/vibevoice-verification.json"
+    assert Settings(_env_file=None).engine_verification_file == s.verification_file

@@ -109,3 +109,42 @@ def test_signoff_requires_pass_and_is_kept_for_same_model():
         previous=final,
     )
     assert other["voices"]["v"]["manual_signoff"] is None
+
+
+def test_vibevoice_verification_writes_its_own_file(tmp_path, monkeypatch):
+    import json
+
+    from voxstream.config import Settings
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "verification").mkdir()
+    kokoro_file = tmp_path / "verification" / "voice-verification.json"
+    kokoro_file.write_text('{"untouched": true}')
+
+    class Stub:
+        async def stop(self):
+            pass
+
+    monkeypatch.setattr(
+        sp,
+        "_engine_setup",
+        lambda s, n: (Stub(), ("sp-Spk2_woman",), "VibeVoice-Realtime-0.5B", lambda: "abc"),
+    )
+    monkeypatch.setattr(sp, "_engine_synth", lambda e: fake_synth)
+    monkeypatch.setattr(sp, "_whisper_transcribe", lambda: (lambda pcm: "hola", "fake"))
+    monkeypatch.setattr(sp, "load_sentences", lambda: ["hola"])
+
+    code = sp.run_cli(Settings(_env_file=None), None, None, None, engine="vibevoice")
+    assert code == 0
+    out = json.loads((tmp_path / "verification" / "vibevoice-verification.json").read_text())
+    assert out["model"] == {"name": "VibeVoice-Realtime-0.5B", "sha256": "abc"}
+    assert out["voices"]["sp-Spk2_woman"]["passed"] is True
+    assert kokoro_file.read_text() == '{"untouched": true}'
+
+
+def test_vibevoice_verification_engine_can_synthesize_unverified_candidates():
+    from voxstream.config import Settings
+
+    tts, candidates, _, _ = sp._engine_setup(Settings(_env_file=None), "vibevoice")
+    assert tts.settings.allow_unverified_voices is True
+    assert set(candidates) <= set(tts.gate().voices)

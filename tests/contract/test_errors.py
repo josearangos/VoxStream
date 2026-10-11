@@ -88,7 +88,7 @@ async def test_unsupported_voice_lists_available(serve):
 
 async def test_unsupported_engine(serve):
     async with serve() as server, client_for(server) as c:
-        await c.send(type="start", engine="vibevoice")
+        await c.send(type="start", engine="no-such-engine")
         check(await c.recv_json(), "UNSUPPORTED_ENGINE", "validation", False, with_id=False)
 
 

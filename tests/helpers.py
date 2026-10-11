@@ -299,3 +299,67 @@ async def client_for(server: VoxStreamApp) -> AsyncIterator[Any]:
         return
     async with connect(f"ws://127.0.0.1:{server.port}/v1/stream", close_timeout=1) as ws:
         yield Client(ws)
+
+
+class FakeVibeBackend:
+    """Stands in for the torch runtime: deterministic float audio, honors the stop hook."""
+
+    device = "cpu"
+    sample_rate = 24000
+
+    def __init__(
+        self,
+        *,
+        delay_s: float = 0.0,
+        ms_per_char: int = 40,
+        block_ms: int = 200,
+        fail_with: BaseException | None = None,
+    ) -> None:
+        self.delay_s = delay_s
+        self.ms_per_char = ms_per_char
+        self.block_ms = block_ms
+        self.fail_with = fail_with
+        self.loaded = False
+        self.closed = 0
+        self.stop_seen = False
+        self.produced = 0
+
+    def load(self) -> None:
+        self.loaded = True
+
+    def stream(self, text: str, voice: str, should_stop: Any) -> Any:
+        import time
+
+        import numpy as np
+
+        if self.fail_with is not None:
+            raise self.fail_with
+        total = self.sample_rate * self.ms_per_char * len(text) // 1000
+        per_block = self.sample_rate * self.block_ms // 1000
+        wave = (np.sin(2 * np.pi * 220 * np.arange(total) / self.sample_rate) * 0.1).astype(
+            np.float32
+        )
+        finished = False
+        try:
+            for off in range(0, total, per_block):
+                if should_stop():
+                    return
+                if self.delay_s:
+                    time.sleep(self.delay_s)
+                self.produced += 1
+                yield wave[off : off + per_block]
+            finished = True
+        finally:
+            # Like the torch backend, an early close or a stop request ends generation.
+            self.stop_seen = not finished
+
+    def close(self) -> None:
+        self.closed += 1
+
+
+def make_vibevoice_stub(**kw: Any) -> Any:
+    """A real ``VibeVoiceEngine`` over the fake backend, with every candidate voice exposed."""
+    from voxstream.engines.vibevoice.engine import VibeVoiceEngine
+
+    settings = make_settings(engine="vibevoice", allow_unverified_voices=True)
+    return VibeVoiceEngine(settings, backend=FakeVibeBackend(**kw))

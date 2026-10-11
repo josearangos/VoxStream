@@ -47,7 +47,8 @@ Environment variables (prefix `VOXSTREAM_`, optional `.env`):
 | `ENABLE_WEBSOCKET` | `true` | Serve the WebSocket transport |
 | `ENABLE_GRPC` | `true` | Serve the gRPC transport (at least one transport must be enabled) |
 | `GRPC_PORT` | `50051` | gRPC port (plaintext, local only) |
-| `ENGINE` | `kokoro` | `kokoro` or `mock` |
+| `ENGINE` | `kokoro` | `kokoro`, `vibevoice` (WebSocket only) or `mock` |
+| `VIBEVOICE_MODEL_DIR` / `VIBEVOICE_DEVICE` | `models/vibevoice` / `cpu` | VibeVoice files; `cpu` or `mps` (an unavailable device is an error, never a silent fallback) |
 | `MAX_TEXT_CHARS` | `2000` | Total characters per request |
 | `REQUEST_TIMEOUT_S` / `IDLE_TIMEOUT_S` | `120` / `15` | Request and idle timeouts |
 | `MAX_CONCURRENT_REQUESTS` | `1` | Service-wide active requests |
@@ -256,6 +257,35 @@ browser blocked autoplay; *"Can't reach the VoxStream service"* — start the se
 `DEMO_SERVICE_URL`. The highlighted position is **estimated** (the protocol carries no word timing):
 it follows elapsed playback time and is rescaled to the real audio length when synthesis completes.
 
+## VibeVoice (experimental, WebSocket only)
+Second engine: Microsoft [VibeVoice-Realtime-0.5B](https://huggingface.co/microsoft/VibeVoice-Realtime-0.5B)
+(MIT). Its model card lists English as the trained language and Spanish only as "experimental"
+voice presets, so Spanish is **unproven until verified here**.
+
+```bash
+uv sync --extra vibevoice --extra verify
+uv run voxstream download-models --engine vibevoice     # about 2 GB + 4 Spanish presets
+VOXSTREAM_VIBEVOICE_DEVICE=mps uv run voxstream verify-voices --engine vibevoice
+VOXSTREAM_ENGINE=vibevoice VOXSTREAM_ENABLE_GRPC=false VOXSTREAM_VIBEVOICE_DEVICE=mps \
+  uv run voxstream serve
+```
+
+- **Verification result (2026-10-10, `verification/vibevoice-verification.json`)**: `sp-Spk4_woman`
+  (mean WER 0.053) and `sp-Spk5_man` (0.008) pass; `sp-Spk2_woman` (0.273, one sentence at 1.0) and
+  `sp-Spk3_man` (0.030 mean, worst sentence 0.364 against the 0.35 limit) fail. Only passing voices
+  are served. Manual listening sign-off recorded 2026-10-10 for both passing voices (accent not documented upstream; judged acceptable by ear)
+  If none pass, the engine answers
+  `ENGINE_UNAVAILABLE`.
+- **gRPC is not supported** for this engine. With gRPC enabled the service refuses to start:
+  `engine 'vibevoice' is not supported on the gRPC transport; set VOXSTREAM_ENABLE_GRPC=false.`
+- **Streaming mode** `incremental` (audio is produced while the model generates), 24 kHz mono.
+- **Cost**: about 7.8 GB resident, and generation is about 1.9 times slower than real time on an M2
+  Pro with `mps` (much slower on `cpu`), so long text will underrun playback. Numbers and the
+  Kokoro comparison: `docs/measurements.md`.
+- **Install notes**: `torch` is pinned to 2.7.1 (newer versions cannot load the voice presets with
+  `weights_only=True`, which is kept on because the presets are pickles). The upstream `vibevoice`
+  package is installed from its GitHub repository.
+
 ## Protocol
 **WebSocket** at `ws://127.0.0.1:8765/v1/stream`: JSON text frames for control (`start`, `text`, `end`,
 `cancel`, `capabilities`; replies `started`, `completed`, `cancelled`, `error`) and binary frames for
@@ -274,7 +304,7 @@ After editing the `.proto`, regenerate the committed stubs with `scripts/gen_pro
   No verified voice: run `verify-voices`; re-run it if the model file changed.
 - **First request is slow (~1.5 s)**: the model loads lazily on the first request.
 - **espeak errors**: the phonemizer library ships with `espeakng-loader`; reinstall with `uv sync`.
-- **Out of memory (`OUT_OF_MEMORY`)**: close other applications; typical use is about 0.6 GB.
+- **Out of memory (`OUT_OF_MEMORY`)**: close other applications; typical use is about 0.6 GB for Kokoro and about 7.8 GB for VibeVoice.
 - **`BUSY`**: only one request runs at a time; retry after the active one ends.
 
 ## Tested versus planned
@@ -284,7 +314,7 @@ After editing the `.proto`, regenerate the committed stubs with `scripts/gen_pro
 - Experimental: Core ML provider (works, not faster; see `docs/decisions.md`), the int8 model
   (needs its own verification).
 - Planned, not built: gRPC TLS and authentication, the formal transport benchmark, other engines
-  (e.g. VibeVoice). Local-loopback numbers for both transports are in `docs/measurements.md`.
+  beyond Kokoro and VibeVoice. Local-loopback numbers for both transports are in `docs/measurements.md`.
 
 ## Development
 `scripts/check.sh` runs ruff, mypy and the default tests. Measurements: `docs/measurements.md`.

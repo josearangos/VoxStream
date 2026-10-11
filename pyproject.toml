@@ -19,7 +19,7 @@ dependencies = [
 verify = ["faster-whisper", "jiwer", "scipy"]
 demo = ["gradio>=6,<7"]
 vibevoice = [
-    "torch>=2.4",
+    "torch==2.7.1",
     "transformers==4.51.3",
     "accelerate",
     "vibevoice @ git+https://github.com/microsoft/VibeVoice.git",
@@ -40,6 +40,9 @@ dev = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/voxstream"]

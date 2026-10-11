@@ -9,6 +9,7 @@ import asyncio
 import datetime
 import getpass
 import json
+import math
 import re
 import unicodedata
 from collections.abc import Callable, Sequence
@@ -19,6 +20,7 @@ import numpy as np
 import numpy.typing as npt
 
 from voxstream.config import Settings
+from voxstream.engines.base import TTSEngine
 
 SynthFn = Callable[[str, str], npt.NDArray[np.int16]]  # (text, voice) -> 24 kHz mono PCM
 TranscribeFn = Callable[[npt.NDArray[np.int16]], str]
@@ -117,6 +119,7 @@ def build_result(
     voice_results: dict[str, dict[str, Any]],
     *,
     model_sha256: str,
+    model_name: str = "kokoro-v1.0",
     recognizer: str,
     mean_threshold: float,
     max_threshold: float,
@@ -132,7 +135,7 @@ def build_result(
         merged = {}
     merged.update(voice_results)
     return {
-        "model": {"name": "kokoro-v1.0", "sha256": model_sha256},
+        "model": {"name": model_name, "sha256": model_sha256},
         "recognizer": {"name": recognizer, "language": "es"},
         "threshold": {"mean_wer": mean_threshold, "max_sentence_wer": max_threshold},
         "voices": merged,
@@ -154,11 +157,9 @@ def load_sentences(path: Path = REFERENCE_FILE) -> list[str]:
 # -- real synthesizer / recognizer ------------------------------------------------------------
 
 
-def _kokoro_synth(settings: Settings) -> SynthFn:
+def _engine_synth(engine: TTSEngine) -> SynthFn:
     from voxstream.engines.base import CancelToken
-    from voxstream.engines.kokoro.engine import KokoroEngine
 
-    engine = KokoroEngine(settings)
     loop = asyncio.new_event_loop()
     loop.run_until_complete(engine.start())
 
@@ -166,7 +167,14 @@ def _kokoro_synth(settings: Settings) -> SynthFn:
         async def run() -> list[npt.NDArray[np.int16]]:
             return [b.samples async for b in engine.synthesize(text, voice, CancelToken())]
 
-        return np.concatenate(loop.run_until_complete(run()))
+        pcm = np.concatenate(loop.run_until_complete(run()))
+        rate = engine.capabilities().audio_format.sample_rate
+        if rate != 24000:  # the recognizer front end expects 24 kHz mono
+            from scipy.signal import resample_poly
+
+            g = math.gcd(24000, rate)
+            pcm = resample_poly(pcm.astype(np.float32), 24000 // g, rate // g).astype(np.int16)
+        return pcm
 
     return synth
 
@@ -185,13 +193,40 @@ def _whisper_transcribe() -> tuple[TranscribeFn, str]:
     return transcribe, "faster-whisper small"
 
 
-def run_cli(
-    settings: Settings, voices: list[str] | None, signoff: str | None, by: str | None
-) -> int:
-    from voxstream.engines.kokoro.engine import KokoroEngine
-    from voxstream.engines.kokoro.voices import CANDIDATE_VOICES
+def _engine_setup(
+    settings: Settings, name: str
+) -> tuple[TTSEngine, tuple[str, ...], str, Callable[[], str | None]] | None:
+    """(engine, candidate voices, model name, model checksum) for a verifiable engine."""
+    if name == "kokoro":
+        from voxstream.engines.kokoro.engine import KokoroEngine
+        from voxstream.engines.kokoro.voices import CANDIDATE_VOICES
 
-    out = Path(settings.verification_file)
+        k = KokoroEngine(settings)
+        return k, CANDIDATE_VOICES, "kokoro-v1.0", k.model_sha256
+    if name == "vibevoice":
+        from voxstream.engines.vibevoice.engine import VibeVoiceEngine
+        from voxstream.engines.vibevoice.voices import CANDIDATE_VOICES as VV_VOICES
+
+        # candidates must be synthesizable before they are verified
+        v = VibeVoiceEngine(settings.model_copy(update={"allow_unverified_voices": True}))
+        return v, VV_VOICES, "VibeVoice-Realtime-0.5B", v.model_sha256
+    return None
+
+
+def run_cli(
+    settings: Settings,
+    voices: list[str] | None,
+    signoff: str | None,
+    by: str | None,
+    engine: str | None = None,
+) -> int:
+    name = engine or settings.engine
+    setup = _engine_setup(settings, name)
+    if setup is None:
+        print(f"Engine {name!r} has no voice verification; use 'kokoro' or 'vibevoice'.")
+        return 1
+    tts, candidates, model_name, model_sha = setup
+    out = Path(settings.verification_file_for(name))
     previous: dict[str, Any] | None = json.loads(out.read_text()) if out.exists() else None
     if signoff:
         if previous is None:
@@ -206,18 +241,21 @@ def run_cli(
         print(f"Recorded sign-off for {signoff}.")
         return 0
 
-    sha = KokoroEngine(settings).model_sha256()
+    sha = model_sha()
     if sha is None:
-        print("Model file not found; run 'voxstream download-models'.")
+        print(f"Model file not found; run 'voxstream download-models --engine {name}'.")
         return 1
     try:
-        synth = _kokoro_synth(settings)
+        synth = _engine_synth(tts)
         transcribe, recognizer = _whisper_transcribe()
     except ImportError:
         print("Verification needs the 'verify' extra: uv sync --extra verify")
         return 1
+    except Exception as exc:
+        print(f"Could not start the {name} engine: {exc}")
+        return 1
     results = evaluate_voices(
-        voices or list(CANDIDATE_VOICES),
+        voices or list(candidates),
         load_sentences(),
         synth,
         transcribe,
@@ -227,6 +265,7 @@ def run_cli(
     final = build_result(
         results,
         model_sha256=sha,
+        model_name=model_name,
         recognizer=recognizer,
         mean_threshold=settings.verify_mean_wer,
         max_threshold=settings.verify_max_sentence_wer,
@@ -237,4 +276,5 @@ def run_cli(
     for voice, res in results.items():
         status = "PASS" if res["passed"] else "FAIL"
         print(f"{voice}: {status} mean_wer={res['mean_wer']} max={res['max_sentence_wer']}")
+    asyncio.run(tts.stop())
     return 0 if any(r["passed"] for r in results.values()) else 1

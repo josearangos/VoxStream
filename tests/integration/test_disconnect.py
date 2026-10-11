@@ -44,3 +44,23 @@ async def test_abrupt_close_without_handshake():
                 break
             await asyncio.sleep(0.02)
         assert server.admission.active == 0
+
+
+async def test_disconnect_stops_vibevoice_generation():
+    from helpers import make_vibevoice_stub
+
+    engine = make_vibevoice_stub(delay_s=0.05, ms_per_char=2000)
+    backend = engine._backend
+    async with running_server(engine, engine="vibevoice", enable_grpc=False) as server:
+        async with client_for(server) as c:
+            await c.start()
+            await c.text("Una frase larga para sintetizar. " * 5)
+            await asyncio.sleep(0.3)
+            assert server.admission.active == 1
+        for _ in range(100):
+            if server.admission.active == 0:
+                break
+            await asyncio.sleep(0.02)
+        assert server.admission.active == 0
+        await asyncio.sleep(0.3)
+        assert backend.stop_seen

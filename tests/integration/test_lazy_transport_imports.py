@@ -35,3 +35,33 @@ def test_disabled_transport_is_never_imported(ws, grpc, absent):
         [sys.executable, "-I", "-c", code], capture_output=True, text=True, timeout=60
     )
     assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_heavy_vibevoice_dependencies_are_never_imported_by_default():
+    code = """
+import sys
+import voxstream, voxstream.app, voxstream.engines.registry as reg
+from voxstream.config import Settings
+reg.create_engine("mock", Settings(_env_file=None))
+bad = [m for m in ("torch", "transformers", "vibevoice") if m in sys.modules]
+assert not bad, bad
+"""
+    r = subprocess.run(
+        [sys.executable, "-I", "-c", code], capture_output=True, text=True, timeout=60
+    )
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_creating_vibevoice_engine_does_not_import_torch():
+    code = """
+import sys
+from voxstream.config import Settings
+from voxstream.engines.registry import create_engine
+create_engine("vibevoice", Settings(_env_file=None, engine="vibevoice"))
+bad = [m for m in ("torch", "transformers", "vibevoice") if m in sys.modules]
+assert not bad, bad
+"""
+    r = subprocess.run(
+        [sys.executable, "-I", "-c", code], capture_output=True, text=True, timeout=60
+    )
+    assert r.returncode == 0, r.stdout + r.stderr
