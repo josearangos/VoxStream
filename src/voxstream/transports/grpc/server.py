@@ -277,10 +277,6 @@ class GrpcServer:
         await server.start()
         self._server = server
 
-    async def serve_forever(self) -> None:
-        assert self._server is not None
-        await self._server.wait_for_termination()
-
     async def close(self) -> None:
         if self._server is not None:
             await self._server.stop(_GRACE_S)

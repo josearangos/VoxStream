@@ -44,3 +44,18 @@ next feature.
 Both transports stayed far below the 4 GB ceiling over 20 requests with no out-of-memory failure
 (SC-006). The gRPC run followed the WebSocket run in the same process, so its RSS and cold-start
 numbers are not comparable.
+
+## README-only gRPC run (SC-007)
+
+Same Mac, Kokoro `ef_dora`, run on 2026-10-10 following the README commands. Dependencies and
+models were already cached, so `uv sync` and `download-models` were near-instant; a first-time
+download (~350 MB) adds network time that is not included here.
+
+| Step | Time |
+|------|-----:|
+| `uv sync` (cached) | 1.3 s |
+| `uv run voxstream serve` until `/readyz` answers | 0.5 s |
+| `examples/grpc_client.py --simulate-llm "Hola, soy tu asistente."` (cold: first request loads the model) | 2.6 s (first audio 2.5 s) |
+| Total after install | about 3.1 s |
+
+This is well under the 5-minute target (SC-007) once models are downloaded.

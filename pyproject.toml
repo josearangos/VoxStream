@@ -18,6 +18,12 @@ dependencies = [
 [project.optional-dependencies]
 verify = ["faster-whisper", "jiwer", "scipy"]
 demo = ["gradio>=6,<7"]
+vibevoice = [
+    "torch>=2.4",
+    "transformers==4.51.3",
+    "accelerate",
+    "vibevoice @ git+https://github.com/microsoft/VibeVoice.git",
+]
 
 [project.scripts]
 voxstream = "voxstream.cli:main"
@@ -62,5 +68,5 @@ files = ["src", "demo"]
 python_version = "3.12"
 
 [[tool.mypy.overrides]]
-module = ["kokoro_onnx.*", "faster_whisper.*", "jiwer.*", "onnxruntime.*", "scipy.*", "gradio.*", "grpc.*", "google.protobuf.*"]
+module = ["kokoro_onnx.*", "faster_whisper.*", "jiwer.*", "onnxruntime.*", "scipy.*", "gradio.*", "grpc.*", "google.protobuf.*", "vibevoice.*", "torch.*", "transformers.*"]
 ignore_missing_imports = true

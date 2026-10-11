@@ -69,11 +69,6 @@ class VoxStreamApp:
                 "Is the port already in use? Set VOXSTREAM_PORT to a free port."
             ) from exc
 
-    async def serve_forever(self) -> None:
-        import asyncio
-
-        await asyncio.Event().wait()
-
     async def _close_transports(self) -> None:
         for server in (self._grpc, self._ws, self._health):
             if server is not None:

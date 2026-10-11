@@ -11,11 +11,13 @@ pytestmark = pytest.mark.model
 LONG = "Esta es una frase de prueba bastante larga para medir la cancelación del audio. " * 3
 
 
-async def test_audio_stops_within_500ms_of_cancel():
+@pytest.mark.parametrize("transport", ["websocket", "grpc"])
+async def test_audio_stops_within_500ms_of_cancel(transport):
     settings = Settings(_env_file=None, port=0, allow_unverified_voices=True)
     async with running_server(
         KokoroEngine(settings), allow_unverified_voices=True, engine="kokoro"
     ) as server:
+        server.transport = transport
         async with client_for(server) as c:
             await c.start()
             await c.text(LONG)

@@ -75,10 +75,6 @@ class VoxStreamServer:
         assert self._server is not None
         return int(next(iter(self._server.sockets)).getsockname()[1])
 
-    async def serve_forever(self) -> None:
-        assert self._server is not None
-        await self._server.serve_forever()
-
     async def close(self) -> None:
         if self._server is not None:
             self._server.close()

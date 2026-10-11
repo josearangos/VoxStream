@@ -131,6 +131,106 @@ async def main():
 asyncio.run(main())
 ```
 
+## gRPC tutorial (Python, step by step)
+
+The gRPC transport does the same job as the WebSocket one: you send Spanish text in pieces and
+receive audio while the text is still arriving. Messages are protobuf instead of JSON, and audio
+arrives as `AudioChunk` messages instead of binary frames.
+
+**1. Install and start the service** (once; see [Installation](#installation))
+
+```bash
+uv sync
+uv run voxstream download-models
+uv run voxstream serve
+# voxstream gRPC 127.0.0.1:50051
+```
+
+Leave it running. To serve gRPC only: `VOXSTREAM_ENABLE_WEBSOCKET=false uv run voxstream serve`.
+
+**2. Try the ready-made client** (in another terminal)
+
+```bash
+uv run python examples/grpc_client.py --simulate-llm "Hola, soy tu asistente."
+afplay out.wav    # macOS; the file is written when the request finishes
+```
+
+It prints the time to first audio and the `Completed` summary.
+
+**3. Know the call shape.** One `Stream` call is one request, and events must go in this order:
+
+| Direction | Message | Meaning |
+|-----------|---------|---------|
+| client → server | `Start(voice?)` | Open the request. Omit `voice` to use the default. |
+| server → client | `Started` | Carries `request_id` and the audio format (`pcm_s16le`, 24000 Hz, mono). |
+| client → server | `Text(text)` (repeat) | Send text pieces as they are produced. |
+| client → server | `End` | No more text. |
+| server → client | `AudioChunk` (repeat) | `pcm` bytes plus `sequence` and `last`. |
+| server → client | `Completed` / `Cancelled` / `Error` | Exactly one, then the call ends with status OK. |
+
+A client can send `Cancel` at any time to stop the audio. Errors, including a rejected `Start`, arrive
+as an `Error` event, not as a gRPC status. The full contract is in
+[docs/grpc-protocol.md](docs/grpc-protocol.md).
+
+**4. Write your own client.** Save this as `my_client.py` in the repository root and run it with
+`uv run python my_client.py`:
+
+```python
+import asyncio
+import wave
+
+from grpc import aio
+
+from voxstream.transports.grpc.gen import voxstream_pb2 as pb
+from voxstream.transports.grpc.gen import voxstream_pb2_grpc as pb_grpc
+
+
+async def requests():
+    yield pb.ClientEvent(start=pb.Start(voice="ef_dora"))
+    for piece in ["Hola, ", "¿cómo estás? ", "Me alegra verte."]:
+        yield pb.ClientEvent(text=pb.Text(text=piece))
+    yield pb.ClientEvent(end=pb.End())
+
+
+async def main():
+    pcm = bytearray()
+    async with aio.insecure_channel("127.0.0.1:50051") as channel:
+        stub = pb_grpc.SynthesizerStub(channel)
+        async for event in stub.Stream(requests()):
+            kind = event.WhichOneof("event")
+            if kind == "started":
+                print("voz:", event.started.stream.voice)
+            elif kind == "audio":
+                pcm += event.audio.pcm  # PCM s16le, 24 kHz, mono
+            elif kind == "completed":
+                print("listo:", event.completed.audio_ms, "ms de audio")
+            elif kind == "error":
+                print("error:", event.error.code, event.error.message)
+    with wave.open("minimal.wav", "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(24000)
+        w.writeframes(bytes(pcm))
+
+
+asyncio.run(main())
+```
+
+Then `afplay minimal.wav`. The request generator is what makes it streaming: replace the list of
+pieces with text from your LLM and each `yield` goes out as soon as you produce it.
+
+**5. Cancel, errors and capabilities**
+
+- Cancel: yield `pb.ClientEvent(cancel=pb.Cancel())` (see `--cancel-after-chunks` in
+  `examples/grpc_client.py`). You get one `Cancelled` event and audio stops within 500 ms.
+- Unsupported voice or language: the call returns an `Error` event with `code` such as
+  `UNSUPPORTED_VOICE` and no `request_id`.
+- Another request is already running: `Error` with `code` `BUSY` (the limit is shared with WebSocket).
+- Capabilities: `await stub.GetCapabilities(pb.CapabilitiesRequest())` lists engine, languages and
+  voices.
+
+The channel is plaintext and meant for localhost; there is no TLS or authentication yet.
+
 ## Demo (Gradio teleprompter)
 
 A browser demo that speaks text through the running service and highlights the words as they are

@@ -214,9 +214,9 @@ make the tests pass.
 
 ## Phase 8: Convergence
 
-- [ ] T050 Add a `model`-marked gRPC variant of `tests/integration/test_cancel_latency.py` (Kokoro; audio stops within 500 ms of an explicit `Cancel`) per SC-004 (partial)
-- [ ] T051 Add a test that a WebSocket-only run never imports `voxstream.transports.grpc` (and a gRPC-only run never imports `voxstream.transports.websocket`), asserted through `sys.modules` in a subprocess, per plan: lazy transport imports / T038 (partial)
-- [ ] T052 Add an integration test where the engine fails mid-stream on one transport while the other transport serves the next request successfully (slot released, engine still usable), per spec Edge Cases (partial)
-- [ ] T053 Remove or justify the unused `VoxStreamApp.serve_forever`, `VoxStreamServer.serve_forever` and `GrpcServer.serve_forever` (the CLI waits on a stop event instead), per plan: simplicity, Constitution XI (unrequested)
-- [ ] T054 Time the README-only gRPC run (install, `serve`, `examples/grpc_client.py`) on the target Mac with Kokoro and record the result in `docs/measurements.md`, per SC-007 (partial)
-- [ ] T055 Re-run `/speckit-analyze` for spec, plan and tasks consistency and record any drift, per T049 (partial)
+- [X] T050 Add a `model`-marked gRPC variant of `tests/integration/test_cancel_latency.py` (Kokoro; audio stops within 500 ms of an explicit `Cancel`) per SC-004 (partial)
+- [X] T051 Add a test that a WebSocket-only run never imports `voxstream.transports.grpc` (and a gRPC-only run never imports `voxstream.transports.websocket`), asserted through `sys.modules` in a subprocess, per plan: lazy transport imports / T038 (partial)
+- [X] T052 Add an integration test where the engine fails mid-stream on one transport while the other transport serves the next request successfully (slot released, engine still usable), per spec Edge Cases (partial)
+- [X] T053 Remove or justify the unused `VoxStreamApp.serve_forever`, `VoxStreamServer.serve_forever` and `GrpcServer.serve_forever` (the CLI waits on a stop event instead), per plan: simplicity, Constitution XI (unrequested)
+- [X] T054 Time the README-only gRPC run (install, `serve`, `examples/grpc_client.py`) on the target Mac with Kokoro and record the result in `docs/measurements.md`, per SC-007 (partial)
+- [X] T055 Re-run `/speckit-analyze` for spec, plan and tasks consistency and record any drift, per T049 (partial)
