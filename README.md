@@ -276,15 +276,17 @@ VOXSTREAM_ENGINE=vibevoice VOXSTREAM_ENABLE_GRPC=false VOXSTREAM_VIBEVOICE_DEVIC
   are served. Manual listening sign-off recorded 2026-10-10 for both passing voices (accent not documented upstream; judged acceptable by ear)
   If none pass, the engine answers
   `ENGINE_UNAVAILABLE`.
-- **gRPC is not supported** for this engine. With gRPC enabled the service refuses to start:
+- **gRPC is not supported** for this engine (a documented exception to the transport-parity principle; see `specs/004-vibevoice-websocket-engine/plan.md`, Complexity Tracking). With gRPC enabled the service refuses to start:
   `engine 'vibevoice' is not supported on the gRPC transport; set VOXSTREAM_ENABLE_GRPC=false.`
 - **Streaming mode** `incremental` (audio is produced while the model generates), 24 kHz mono.
 - **Cost**: about 7.8 GB resident, and generation is about 1.9 times slower than real time on an M2
-  Pro with `mps` (much slower on `cpu`), so long text will underrun playback. Numbers and the
+  Pro with `mps` (about 9 times slower than real time on `cpu`, the default), so long text will underrun playback. Suitability: usable on a 16 GB Apple Silicon machine with little else running; **not suitable for machines with 8 GB** or for long live narration. Numbers and the
   Kokoro comparison: `docs/measurements.md`.
 - **Install notes**: `torch` is pinned to 2.7.1 (newer versions cannot load the voice presets with
   `weights_only=True`, which is kept on because the presets are pickles). The upstream `vibevoice`
-  package is installed from its GitHub repository.
+  package is installed from its GitHub repository. `download-models --engine vibevoice` checks the
+  voice presets against pinned sha256 values (trust on first use, pinned 2026-10-10) and rejects a
+  mismatch.
 
 ## Protocol
 **WebSocket** at `ws://127.0.0.1:8765/v1/stream`: JSON text frames for control (`start`, `text`, `end`,

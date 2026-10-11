@@ -86,7 +86,11 @@ Reading the numbers:
 - Memory is about 12 times Kokoro's and above the 4 GB ceiling used for Kokoro. It fits on 16 GB
   with little else running.
 - Spanish quality is gated: 2 of 4 presets pass verification (see README, "VibeVoice").
-- Not measured: CPU numbers on the same script (spike numbers only), a 20-trial run.
+- CPU (the default device), same script, 3 trials: first audio 1.14 s median (2.18 s on the first
+  request), real-time factor 9.2 (9.7 worst), generation 108 s for 175 characters, median gap between
+  frames 1.09 s. Usable only for short sentences; set `VOXSTREAM_VIBEVOICE_DEVICE=mps` for anything
+  longer.
+- Not measured: a 20-trial run (MPS used 8 trials, CPU 3).
 
 ### Comparing both engines (SC-005)
 

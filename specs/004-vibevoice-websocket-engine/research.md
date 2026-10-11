@@ -16,7 +16,7 @@ those pages; anything not found there is marked **Unknown** and becomes a spike 
 ## R-02 Spanish support
 
 - **Finding**: The model card says it is trained on English only; Spanish is one of nine
-  "experimental" multilingual voice sets (2 Spanish voices, names Unknown) that must be downloaded
+  "experimental" multilingual voice sets (2 Spanish voices, names Unknown; superseded by R-09: four presets found) that must be downloaded
   separately and are "not extensively tested".
 - **Decision**: Treat Spanish as unproven. The engine is gated by the existing transcribe-and-compare
   verification (spec FR-007, FR-007a); with zero passing voices it refuses to synthesize.

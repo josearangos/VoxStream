@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-10
 
-**Status**: Draft
+**Status**: Implemented
 
 **Input**: User description: "Let's start new feature to add new engine Microsoft VibeVoice in spanish too, only websocket"
 

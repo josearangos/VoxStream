@@ -18,6 +18,15 @@ VIBEVOICE_REPO = "microsoft/VibeVoice-Realtime-0.5B"
 VIBEVOICE_VOICES_URL = (
     "https://github.com/user-attachments/files/24035884/experimental_voices_sp.tar.gz"
 )
+# Pinned on 2026-10-10 from the upstream files (trust on first use); a mismatch means upstream
+# changed the files or the download was altered.
+VIBEVOICE_VOICE_SHA256 = {
+    "sp-Spk2_woman": "f88d2ba4057cc621bbbd0c7bd1a16ac77129008b52488ae15957a238878a8667",
+    "sp-Spk3_man": "3275ca5b5dcd11c3ccd1c613e4e70004ee5c92ee293dc6476abae07fd79a72fd",
+    "sp-Spk4_woman": "b4e31f86aaabab417f66bdb395bcf282c99546ed98c526cbc9ebd7e696281b93",
+    "sp-Spk5_man": "1b805045b5c54ff56dc032a304f92060e0447f3008b0ef73484e9c6a1c49c5b3",
+}
+VIBEVOICE_MODEL_SHA256 = "7758b150b8139deb48ac1ff6f181f745c8fedd5511232fd974b3eb217d83b514"
 
 
 def sha256_of(path: Path) -> str:
@@ -96,8 +105,25 @@ def cmd_download_vibevoice(settings: Settings) -> int:
             archive.unlink(missing_ok=True)
     else:
         print("voices: already present")
+    bad = [
+        name
+        for name, digest in VIBEVOICE_VOICE_SHA256.items()
+        if not (voices_dir / f"{name}.pt").exists()
+        or sha256_of(voices_dir / f"{name}.pt") != digest
+    ]
+    if bad:
+        print(f"Checksum mismatch or missing voice presets: {', '.join(bad)}. Not trusting them.")
+        for name in bad:
+            (voices_dir / f"{name}.pt").unlink(missing_ok=True)
+        return 1
     print("Voice presets are pickles from the upstream project; they load with weights_only.")
-    print("sha256:", sha256_of(model_dir / "model.safetensors"))
+    model_sha = sha256_of(model_dir / "model.safetensors")
+    print("sha256:", model_sha)
+    if model_sha != VIBEVOICE_MODEL_SHA256:
+        print(
+            "Warning: the model file differs from the one verified for this project; "
+            "rerun 'voxstream verify-voices --engine vibevoice'."
+        )
     return 0
 
 

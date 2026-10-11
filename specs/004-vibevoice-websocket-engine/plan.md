@@ -87,6 +87,7 @@ src/voxstream/
 │   └── vibevoice/
 │       ├── __init__.py
 │       ├── engine.py            # VibeVoiceEngine adapter
+│       ├── backend.py           # PyTorch runtime (only module importing torch)
 │       └── voices.py            # Spanish candidate presets
 ├── verification/spanish.py      # engine-parameterized
 └── cli.py                       # verify-voices / download-models accept --engine
