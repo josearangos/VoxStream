@@ -37,6 +37,8 @@ class PlaybackSession:
     audio_ms_received: float = 0.0
     total_audio_ms: float | None = None
     error: str | None = None
+    engine: str | None = None
+    voice: str | None = None
 
     @property
     def active(self) -> bool:

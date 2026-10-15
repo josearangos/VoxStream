@@ -28,6 +28,8 @@ class Started:
     request_id: str
     sample_rate: int
     channels: int
+    engine: str | None = None
+    voice: str | None = None
 
 
 @dataclass(frozen=True)
@@ -49,7 +51,9 @@ class ServiceError:
 Event = Started | AudioChunk | Completed | ServiceError
 
 
-async def stream_speech(url: str, text: str) -> AsyncIterator[Event]:
+async def stream_speech(
+    url: str, text: str, *, voice: str | None = None, engine: str | None = None
+) -> AsyncIterator[Event]:
     """Speak ``text`` through the service; closing the generator cancels the request."""
     try:
         ws = await connect(url, close_timeout=CLOSE_TIMEOUT_S, max_size=None)
@@ -60,7 +64,12 @@ async def stream_speech(url: str, text: str) -> AsyncIterator[Event]:
     terminal = False
     try:
         try:
-            await ws.send(json.dumps({"type": "start"}))
+            start: dict[str, str] = {"type": "start"}
+            if voice is not None:
+                start["voice"] = voice
+            if engine is not None:
+                start["engine"] = engine
+            await ws.send(json.dumps(start))
             sample_rate, channels = 24000, 1
             async for message in ws:
                 if isinstance(message, bytes):
@@ -78,7 +87,13 @@ async def stream_speech(url: str, text: str) -> AsyncIterator[Event]:
                     request_id = msg["request_id"]
                     sample_rate = int(stream["sample_rate"])
                     channels = int(stream["channels"])
-                    yield Started(request_id or "", sample_rate, channels)
+                    yield Started(
+                        request_id or "",
+                        sample_rate,
+                        channels,
+                        stream.get("engine"),
+                        stream.get("voice"),
+                    )
                     await ws.send(
                         json.dumps({"type": "text", "request_id": request_id, "text": text})
                     )

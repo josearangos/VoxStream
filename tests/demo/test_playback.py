@@ -6,6 +6,9 @@ from demo.playback import Runtime
 from demo.session import State
 from demo.settings import DemoSettings
 
+from helpers import running_server
+from voxstream.engines.mock import MockEngine
+
 TEXT = "Hola, ¿cómo estás hoy? Me alegra verte."
 
 
@@ -51,3 +54,56 @@ async def test_stop_keeps_spoken_words() -> None:
     rt.t0 = 0.0
     rt.stop()
     assert rt.status() == "Stopped" and not rt.active
+
+
+async def test_session_records_engine_and_voice() -> None:
+    async with running_server(MockEngine(voices=["v1", "v2"])) as server:
+        url = f"ws://127.0.0.1:{server.port}/v1/stream"
+        rt = Runtime(settings(url), TEXT, voice="v2", engine="mock")
+        _ = [c async for c in rt.run()]
+        assert (rt.session.engine, rt.session.voice) == ("mock", "v2")
+
+
+async def test_unsupported_voice_message() -> None:
+    async with running_server(MockEngine()) as server:
+        url = f"ws://127.0.0.1:{server.port}/v1/stream"
+        rt = Runtime(settings(url), TEXT, voice="nope")
+        _ = [c async for c in rt.run()]
+        assert "Press Refresh" in rt.status() and rt.error_code == "UNSUPPORTED_VOICE"
+
+
+async def test_preparing_status_until_first_chunk() -> None:
+    async with running_server(MockEngine(delay_s=0.3)) as server:
+        url = f"ws://127.0.0.1:{server.port}/v1/stream"
+        rt = Runtime(settings(url), TEXT)
+        seen: list[str] = []
+        agen = rt.run()
+        task = asyncio.create_task(agen.__anext__())
+        for _ in range(50):
+            await asyncio.sleep(0.02)
+            if rt.session.state is State.PLAYING:
+                seen.append(rt.status())
+                break
+        await task
+        assert seen == ["Preparing speech…"] and rt.status() == "Playing"
+        rt.stop()
+        assert rt.status() == "Stopped"
+        await agen.aclose()
+
+
+async def test_prebuffer_holds_audio_until_threshold() -> None:
+    async with running_server(MockEngine(delay_s=0.01, block_ms=100)) as server:
+        url = f"ws://127.0.0.1:{server.port}/v1/stream"
+        rt = Runtime(settings(url, prebuffer_ms=1000), TEXT)
+        chunks = [c async for c in rt.run()]
+        first = wave.open(io.BytesIO(chunks[0]))
+        assert first.getnframes() / first.getframerate() >= 1.0
+        assert rt.session.total_audio_ms
+
+
+async def test_prebuffer_flushes_short_audio_on_completion() -> None:
+    async with running_server(MockEngine()) as server:
+        url = f"ws://127.0.0.1:{server.port}/v1/stream"
+        rt = Runtime(settings(url, prebuffer_ms=600_000), "Hola.")
+        chunks = [c async for c in rt.run()]
+        assert len(chunks) == 1 and rt.t0 is not None

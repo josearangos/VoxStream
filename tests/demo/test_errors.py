@@ -26,3 +26,9 @@ def test_too_long_shows_limit() -> None:
 
 def test_unreachable_has_url() -> None:
     assert "ws://x" in errors.unreachable("ws://x")
+
+
+def test_refresh_guidance_messages() -> None:
+    assert "Refresh" in errors.message_for("UNSUPPORTED_VOICE")
+    assert "Refresh" in errors.message_for("UNSUPPORTED_ENGINE")
+    assert "VibeVoice" in errors.message_for("ENGINE_UNAVAILABLE")

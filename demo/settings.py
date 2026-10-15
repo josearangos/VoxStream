@@ -15,6 +15,8 @@ class DemoSettings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 7860
     playback_lead_ms: int = 0
+    chunk_ms: int = 800  # coalesce service chunks into WAV pieces of at least this length
+    prebuffer_ms: int = 0  # hold this much audio before playing (for engines slower than real time)
     max_text_chars: int = 2000
     speech_rate_chars_per_s: float = 14.0
     pause_weight_comma: int = 3

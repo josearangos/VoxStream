@@ -250,6 +250,13 @@ uv run --extra demo python -m demo.app     # then open http://127.0.0.1:7860
 | `DEMO_HOST` / `DEMO_PORT` | `127.0.0.1` / `7860` | Demo bind (loopback only) |
 | `DEMO_MAX_TEXT_CHARS` | `2000` | Over-length check; keep equal to `VOXSTREAM_MAX_TEXT_CHARS` |
 | `DEMO_PLAYBACK_LEAD_MS` | `0` | Shift the highlight earlier (+) or later (−) to match what you hear |
+| `DEMO_PREBUFFER_MS` | `0` | Hold this much audio before playing; raise (e.g. `4000`) for VibeVoice, which is slower than real time, to avoid choppy playback at the cost of a longer "Preparing speech…" |
+
+The demo reads `/readyz` and shows the active engine (Kokoro or VibeVoice), a voice dropdown with
+the Spanish voices the service offers, and a "Speaking with <engine> · <voice>" line. The engine
+selector is read-only: to compare engines, restart the service with `VOXSTREAM_ENGINE=kokoro` or
+`VOXSTREAM_ENGINE=vibevoice` and press **Refresh**. VibeVoice takes longer to produce its first
+audio; the status shows "Preparing speech…" until it arrives.
 | `DEMO_SPEECH_RATE_CHARS_PER_S` | `14` | Initial speech-rate estimate for word timing |
 
 Troubleshooting: *no audio* — check ffmpeg is installed and click the player's play button if the

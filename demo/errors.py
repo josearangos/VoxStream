@@ -11,14 +11,19 @@ _MESSAGES: dict[str, str] = {
     "REQUEST_MISMATCH": "The service lost track of the request. Try again.",
     "BUSY": "The service is busy with another request. Try again in a moment.",
     "UNSUPPORTED_LANGUAGE": "The service only speaks Spanish.",
-    "UNSUPPORTED_VOICE": "The selected voice is not available on the service.",
-    "UNSUPPORTED_ENGINE": "The selected engine is not available on the service.",
+    "UNSUPPORTED_VOICE": (
+        "That voice is not available on the service. Press Refresh to reload the voice list."
+    ),
+    "UNSUPPORTED_ENGINE": "The service runs a different engine than the page shows. Press Refresh.",
     "TEXT_TOO_LONG": "Text is too long for the service. Shorten it and try again.",
     "EMPTY_REQUEST": "Enter some text first.",
     "IDLE_TIMEOUT": "The service timed out waiting for text. Try again.",
     "REQUEST_TIMEOUT": "The request took too long and was stopped. Try again.",
     "ENGINE_FAILURE": "The speech engine failed. Try again.",
-    "ENGINE_UNAVAILABLE": "The speech engine is not ready yet. Try again in a moment.",
+    "ENGINE_UNAVAILABLE": (
+        "The speech engine is not ready. If it is VibeVoice, check that its model is "
+        "downloaded and its voices are verified, then press Refresh."
+    ),
     "OUT_OF_MEMORY": "The service ran out of memory. Try shorter text.",
     "INTERNAL_ERROR": "The service hit an internal error. Try again.",
 }

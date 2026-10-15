@@ -31,6 +31,7 @@ STATUS_TEXT = {
     State.FINISHED: "Finished",
     State.STOPPED: "Stopped",
 }
+PREPARING_TEXT = "Preparing speech…"
 
 
 @dataclass
@@ -46,6 +47,9 @@ class Runtime:
     frozen_index: int | None = None
     sample_rate: int = 24000
     channels: int = 1
+    voice: str | None = None
+    engine: str | None = None
+    error_code: str | None = None
 
     def __post_init__(self) -> None:
         s = self.settings
@@ -101,6 +105,8 @@ class Runtime:
     def status(self) -> str:
         if self.session.state is State.ERROR:
             return f"Error: {self.session.error}"
+        if self.session.state is State.PLAYING and self.t0 is None:
+            return PREPARING_TEXT
         return STATUS_TEXT[self.session.state]
 
     def html(self) -> str:
@@ -112,21 +118,39 @@ class Runtime:
         s = self.session
         self._go(State.CONNECTING)
         url = self.settings.service_url
+        pending: list[bytes] = []
+        pending_ms = 0.0
         try:
-            async for event in stream_speech(url, self.text):
+            async for event in stream_speech(url, self.text, voice=self.voice, engine=self.engine):
                 if isinstance(event, Started):
                     s.request_id = event.request_id
                     self.sample_rate, self.channels = event.sample_rate, event.channels
+                    s.engine, s.voice = event.engine, event.voice
+                    log.info("request=%s engine=%s voice=%s", s.request_id, s.engine, s.voice)
                     self._go(State.PLAYING)
                 elif isinstance(event, AudioChunk):
+                    s.audio_ms_received += event.ms
+                    pending.append(event.payload)
+                    pending_ms += event.ms
+                    threshold = self.settings.prebuffer_ms if self.t0 is None else 0
+                    if pending_ms < max(threshold, self.settings.chunk_ms):
+                        continue  # fewer, larger pieces keep Gradio's per-chunk cost low
                     if self.t0 is None:
                         self.t0 = time.monotonic()
-                    s.audio_ms_received += event.ms
-                    yield pcm_to_wav_chunk(event.payload, self.sample_rate, self.channels)
+                    yield pcm_to_wav_chunk(b"".join(pending), self.sample_rate, self.channels)
+                    pending.clear()
+                    pending_ms = 0.0
                 elif isinstance(event, Completed):
+                    if pending:  # audio ended before a full piece accumulated
+                        if self.t0 is None:
+                            self.t0 = time.monotonic()
+                        yield pcm_to_wav_chunk(b"".join(pending), self.sample_rate, self.channels)
+                        pending.clear()
+                        pending_ms = 0.0
                     s.total_audio_ms = event.audio_ms
                     self.timeline.rescale(event.audio_ms / 1000)
                 elif isinstance(event, ServiceError):
+                    self.error_code = event.code
                     self.fail(errors.message_for(event.code, limit=self.settings.max_text_chars))
         except ServiceUnreachable:
             self.fail(errors.unreachable(url))

@@ -56,3 +56,22 @@ async def test_busy_surfaces() -> None:
 async def test_text_too_long(short_limit_url: str) -> None:
     events = [e async for e in stream_speech(short_limit_url, TEXT)]
     assert ServiceError("TEXT_TOO_LONG") in events
+
+
+async def test_started_carries_engine_and_voice() -> None:
+    async with running_server(MockEngine(voices=["v1", "v2"])) as server:
+        url = f"ws://127.0.0.1:{server.port}/v1/stream"
+        events = [e async for e in stream_speech(url, TEXT, voice="v2", engine="mock")]
+        assert isinstance(events[0], Started)
+        assert (events[0].engine, events[0].voice) == ("mock", "v2")
+
+
+async def test_unknown_voice_and_wrong_engine() -> None:
+    async with running_server(MockEngine()) as server:
+        url = f"ws://127.0.0.1:{server.port}/v1/stream"
+        assert [e async for e in stream_speech(url, TEXT, voice="nope")] == [
+            ServiceError("UNSUPPORTED_VOICE")
+        ]
+        assert [e async for e in stream_speech(url, TEXT, engine="other")] == [
+            ServiceError("UNSUPPORTED_ENGINE")
+        ]
